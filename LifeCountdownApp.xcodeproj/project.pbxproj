@@ -1,0 +1,505 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A0010001 /* LifeCountdownApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020001 /* LifeCountdownApp.swift */; };
+		A0010002 /* LifeDataModel.swift in Sources (App) */ = {isa = PBXBuildFile; fileRef = A0020002 /* LifeDataModel.swift */; };
+		A0010003 /* PhilosophyQuote.swift in Sources (App) */ = {isa = PBXBuildFile; fileRef = A0020003 /* PhilosophyQuote.swift */; };
+		A0010004 /* AppSettings.swift in Sources (App) */ = {isa = PBXBuildFile; fileRef = A0020004 /* AppSettings.swift */; };
+		A0010005 /* CircularProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020005 /* CircularProgressView.swift */; };
+		A0010006 /* TimeDimensionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020006 /* TimeDimensionCard.swift */; };
+		A0010007 /* MonthDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020007 /* MonthDetailSheet.swift */; };
+		A0010008 /* MainDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020008 /* MainDashboardView.swift */; };
+		A0010009 /* LifeGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020009 /* LifeGridView.swift */; };
+		A001000A /* QuotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A002000A /* QuotesView.swift */; };
+		A001000B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A002000B /* SettingsView.swift */; };
+		A001000C /* LifeWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0010001 /* LifeWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		
+		/* Widget Sources */
+		B0020001 /* LifeWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0030001 /* LifeWidgetBundle.swift */; };
+		B0020002 /* LifeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0030002 /* LifeWidget.swift */; };
+		B0020003 /* SmallWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0030003 /* SmallWidgetView.swift */; };
+		B0020004 /* MediumWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0030004 /* MediumWidgetView.swift */; };
+		B0020005 /* LargeWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0030005 /* LargeWidgetView.swift */; };
+		B0020006 /* LockScreenWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0030006 /* LockScreenWidgetView.swift */; };
+		B0020007 /* LifeDataModel.swift in Sources (Widget) */ = {isa = PBXBuildFile; fileRef = A0020002 /* LifeDataModel.swift */; };
+		B0020008 /* PhilosophyQuote.swift in Sources (Widget) */ = {isa = PBXBuildFile; fileRef = A0020003 /* PhilosophyQuote.swift */; };
+		B0020009 /* AppSettings.swift in Sources (Widget) */ = {isa = PBXBuildFile; fileRef = A0020004 /* AppSettings.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C0010001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B0000001;
+			remoteInfo = LifeWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C0020001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A001000C /* LifeWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		A0000001 /* LifeCountdownApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LifeCountdownApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A0020001 /* LifeCountdownApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeCountdownApp.swift; sourceTree = "<group>"; };
+		A0020002 /* LifeDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeDataModel.swift; sourceTree = "<group>"; };
+		A0020003 /* PhilosophyQuote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhilosophyQuote.swift; sourceTree = "<group>"; };
+		A0020004 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		A0020005 /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift; sourceTree = "<group>"; };
+		A0020006 /* TimeDimensionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeDimensionCard.swift; sourceTree = "<group>"; };
+		A0020007 /* MonthDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthDetailSheet.swift; sourceTree = "<group>"; };
+		A0020008 /* MainDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainDashboardView.swift; sourceTree = "<group>"; };
+		A0020009 /* LifeGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeGridView.swift; sourceTree = "<group>"; };
+		A002000A /* QuotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotesView.swift; sourceTree = "<group>"; };
+		A002000B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A002000C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		
+		B0010001 /* LifeWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LifeWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0030001 /* LifeWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeWidgetBundle.swift; sourceTree = "<group>"; };
+		B0030002 /* LifeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeWidget.swift; sourceTree = "<group>"; };
+		B0030003 /* SmallWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallWidgetView.swift; sourceTree = "<group>"; };
+		B0030004 /* MediumWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediumWidgetView.swift; sourceTree = "<group>"; };
+		B0030005 /* LargeWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LargeWidgetView.swift; sourceTree = "<group>"; };
+		B0030006 /* LockScreenWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenWidgetView.swift; sourceTree = "<group>"; };
+		B0030007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A0030001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B0040001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 = {
+			isa = PBXGroup;
+			children = (
+				A0040001 /* LifeCountdownApp */,
+				B0050001 /* LifeWidget */,
+				A0040002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A0040001 /* LifeCountdownApp */ = {
+			isa = PBXGroup;
+			children = (
+				A0040003 /* App */,
+				A0040004 /* Models */,
+				A0040005 /* Views */,
+				A002000C /* Info.plist */,
+			);
+			path = LifeCountdownApp;
+			sourceTree = "<group>";
+		};
+		A0040003 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A0020001 /* LifeCountdownApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A0040004 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A0020002 /* LifeDataModel.swift */,
+				A0020003 /* PhilosophyQuote.swift */,
+				A0020004 /* AppSettings.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A0040005 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A0020008 /* MainDashboardView.swift */,
+				A0020009 /* LifeGridView.swift */,
+				A002000A /* QuotesView.swift */,
+				A002000B /* SettingsView.swift */,
+				A0040006 /* Components */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A0040006 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A0020005 /* CircularProgressView.swift */,
+				A0020006 /* TimeDimensionCard.swift */,
+				A0020007 /* MonthDetailSheet.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		B0050001 /* LifeWidget */ = {
+			isa = PBXGroup;
+			children = (
+				B0030001 /* LifeWidgetBundle.swift */,
+				B0030002 /* LifeWidget.swift */,
+				B0050002 /* Views */,
+				B0030007 /* Info.plist */,
+			);
+			path = LifeWidget;
+			sourceTree = "<group>";
+		};
+		B0050002 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B0030003 /* SmallWidgetView.swift */,
+				B0030004 /* MediumWidgetView.swift */,
+				B0030005 /* LargeWidgetView.swift */,
+				B0030006 /* LockScreenWidgetView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A0040002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A0000001 /* LifeCountdownApp.app */,
+				B0010001 /* LifeWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A0000002 /* LifeCountdownApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A0050001 /* Build configuration list for PBXNativeTarget "LifeCountdownApp" */;
+			buildPhases = (
+				A0060001 /* Sources */,
+				A0030001 /* Frameworks */,
+				A0060002 /* Resources */,
+				C0020001 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C0030001 /* PBXTargetDependency */,
+			);
+			name = LifeCountdownApp;
+			productName = LifeCountdownApp;
+			productReference = A0000001 /* LifeCountdownApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B0000001 /* LifeWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B0060001 /* Build configuration list for PBXNativeTarget "LifeWidget" */;
+			buildPhases = (
+				B0070001 /* Sources */,
+				B0040001 /* Frameworks */,
+				B0070002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LifeWidget;
+			productName = LifeWidget;
+			productReference = B0010001 /* LifeWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A0000002 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					B0000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "LifeCountdownApp" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 08FB7794FE84155DC02AAC07;
+			productRefGroup = A0040002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A0000002 /* LifeCountdownApp */,
+				B0000001 /* LifeWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A0060002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B0070002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A0060001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A0010001 /* LifeCountdownApp.swift in Sources */,
+				A0010002 /* LifeDataModel.swift in Sources (App) */,
+				A0010003 /* PhilosophyQuote.swift in Sources (App) */,
+				A0010004 /* AppSettings.swift in Sources (App) */,
+				A0010005 /* CircularProgressView.swift in Sources */,
+				A0010006 /* TimeDimensionCard.swift in Sources */,
+				A0010007 /* MonthDetailSheet.swift in Sources */,
+				A0010008 /* MainDashboardView.swift in Sources */,
+				A0010009 /* LifeGridView.swift in Sources */,
+				A001000A /* QuotesView.swift in Sources */,
+				A001000B /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B0070001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0020001 /* LifeWidgetBundle.swift in Sources */,
+				B0020002 /* LifeWidget.swift in Sources */,
+				B0020003 /* SmallWidgetView.swift in Sources */,
+				B0020004 /* MediumWidgetView.swift in Sources */,
+				B0020005 /* LargeWidgetView.swift in Sources */,
+				B0020006 /* LockScreenWidgetView.swift in Sources */,
+				B0020007 /* LifeDataModel.swift in Sources (Widget) */,
+				B0020008 /* PhilosophyQuote.swift in Sources (Widget) */,
+				B0020009 /* AppSettings.swift in Sources (Widget) */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C0030001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B0000001 /* LifeWidget */;
+			targetProxy = C0010001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB928A08733DD80010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1DEB928B08733DD80010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A0050002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LifeCountdownApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifecountdown.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A0050003 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LifeCountdownApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifecountdown.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B0060002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LifeWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifecountdown.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B0060003 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LifeWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifecountdown.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "LifeCountdownApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB928A08733DD80010E9CD /* Debug */,
+				1DEB928B08733DD80010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A0050001 /* Build configuration list for PBXNativeTarget "LifeCountdownApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A0050002 /* Debug */,
+				A0050003 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B0060001 /* Build configuration list for PBXNativeTarget "LifeWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B0060002 /* Debug */,
+				B0060003 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}
