@@ -1,27 +1,37 @@
 import SwiftUI
 
 /// 首页核心仪表盘视图
-/// 聚合人生倒计时环形进度、精确天数指标及多维度时间流逝感知
 struct MainDashboardView: View {
     @ObservedObject var settings = AppSettings.shared
     @State private var currentTime = Date()
     
-    // 定时器：每秒更新一次细微的时间流逝
     let timer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
     
     private var snapshot: LifeProgressSnapshot {
-        LifeCalculator.calculate(birthDate: settings.birthDate, targetAge: settings.targetAge, asOf: currentTime)
+        LifeCalculator.calculate(
+            birthDate: settings.birthDate,
+            targetAge: settings.targetAge,
+            isTogetherEnabled: settings.isTogetherEnabled,
+            togetherDate: settings.togetherDate,
+            partnerName: settings.partnerName,
+            asOf: currentTime
+        )
     }
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    // 问候与自定义座右铭
+                VStack(spacing: 20) {
+                    // 问候区
                     greetingHeader
                     
-                    // 核心环形倒计时进度卡片
+                    // 核心环形倒计时 Hero 卡片
                     countdownHeroCard
+                    
+                    // 相伴时光纪念日专属卡片
+                    if let togetherDays = snapshot.togetherDays {
+                        togetherCard(days: togetherDays)
+                    }
                     
                     // 多维度时间感知卡片组（一生、今年、本月、今日）
                     dimensionSection
@@ -30,11 +40,12 @@ struct MainDashboardView: View {
                     todayQuotePreview
                 }
                 .padding(.horizontal)
-                .padding(.top, 12)
+                .padding(.top, 10)
                 .padding(.bottom, 30)
             }
             .background(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("时间印迹")
+            .navigationBarTitleDisplayMode(.inline)
             .onReceive(timer) { newTime in
                 currentTime = newTime
             }
@@ -46,7 +57,7 @@ struct MainDashboardView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text("你好，\(settings.userName)")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                 Text(settings.customMotto)
                     .font(.system(size: 13))
                     .foregroundColor(.secondary)
@@ -54,88 +65,130 @@ struct MainDashboardView: View {
             }
             Spacer()
         }
-        .padding(.top, 6)
+        .padding(.top, 4)
     }
     
-    // MARK: - 核心倒计时 Hero 卡片
+    // MARK: - 核心倒计时卡片
     private var countdownHeroCard: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             CircularProgressView(
                 progress: snapshot.lifeProgressRatio,
-                lineWidth: 18,
+                lineWidth: 16,
                 primaryColor: .orange,
                 secondaryColor: .purple,
                 title: "人生已度过",
                 subtitle: "目标设为 \(snapshot.targetAge) 岁"
             )
-            .frame(width: 220, height: 220)
-            .padding(.top, 8)
+            .frame(width: 200, height: 200)
+            .padding(.top, 6)
             
-            // 精确统计数据网格
             HStack(spacing: 12) {
-                VStack(spacing: 4) {
+                VStack(spacing: 3) {
                     Text("已走过时光")
-                        .font(.system(size: 12))
+                        .font(.system(size: 11))
                         .foregroundColor(.secondary)
                     Text("\(snapshot.passedLifeDays)")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.primary)
                     Text("天")
-                        .font(.system(size: 11))
+                        .font(.system(size: 10))
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity)
                 
-                Divider().frame(height: 38)
+                Divider().frame(height: 34)
                 
-                VStack(spacing: 4) {
+                VStack(spacing: 3) {
                     Text("预计尚剩余")
-                        .font(.system(size: 12))
+                        .font(.system(size: 11))
                         .foregroundColor(.secondary)
                     Text("\(snapshot.remainingLifeDays)")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.orange)
                     Text("天")
-                        .font(.system(size: 11))
+                        .font(.system(size: 10))
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity)
                 
-                Divider().frame(height: 38)
+                Divider().frame(height: 34)
                 
-                VStack(spacing: 4) {
+                VStack(spacing: 3) {
                     Text("总规划时间")
-                        .font(.system(size: 12))
+                        .font(.system(size: 11))
                         .foregroundColor(.secondary)
                     Text("\(snapshot.totalLifeDays)")
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.secondary)
                     Text("天")
-                        .font(.system(size: 11))
+                        .font(.system(size: 10))
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity)
             }
             .padding(.horizontal)
-            .padding(.bottom, 6)
+            .padding(.bottom, 4)
         }
-        .padding(.vertical, 20)
+        .padding(.vertical, 16)
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 22)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(Color(UIColor.secondarySystemGroupedBackground))
-                .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 3)
+                .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 2)
+        )
+    }
+    
+    // MARK: - 相伴时光卡片
+    private func togetherCard(days: Int) -> some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(colors: [Color.pink.opacity(0.2), Color.red.opacity(0.12)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 48, height: 48)
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 22))
+                    .foregroundColor(.pink)
+            }
+            
+            VStack(alignment: .leading, spacing: 3) {
+                Text("和 \(snapshot.partnerName) 已经在一起")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+                
+                HStack(alignment: .lastTextBaseline, spacing: 3) {
+                    Text("\(days)")
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                        .foregroundColor(.pink)
+                    Text("天")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                
+                if let rem = snapshot.togetherRemainingDays {
+                    Text("余生还有 \(rem) 天继续携手同行")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary.opacity(0.9))
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: Color.black.opacity(0.02), radius: 6, x: 0, y: 2)
         )
     }
     
     // MARK: - 多维度时间感知
     private var dimensionSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("多维度时间流逝")
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .padding(.leading, 4)
             
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 TimeDimensionCard(
                     title: "\(snapshot.currentYear) 年度进程",
                     icon: "calendar",
@@ -173,31 +226,31 @@ struct MainDashboardView: View {
     private var todayQuotePreview: some View {
         let quote = PhilosophyQuoteRepository.todayQuote(for: currentTime)
         
-        return VStack(alignment: .leading, spacing: 10) {
+        return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: "quote.opening")
                     .foregroundColor(.orange)
                 Text("今日生命随想")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.orange)
                 Spacer()
             }
             
             Text(quote.content)
-                .font(.system(size: 14, weight: .regular))
+                .font(.system(size: 13, weight: .regular))
                 .foregroundColor(.primary)
                 .lineSpacing(4)
             
             HStack {
                 Spacer()
                 Text("— \(quote.author) \(quote.source)")
-                    .font(.system(size: 12))
+                    .font(.system(size: 11))
                     .foregroundColor(.secondary)
             }
         }
-        .padding(16)
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(Color(UIColor.secondarySystemGroupedBackground))
         )
     }

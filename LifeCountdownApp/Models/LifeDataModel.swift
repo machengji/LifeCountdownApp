@@ -1,7 +1,6 @@
 import Foundation
 
-/// 人生时间与多维度时间流逝计算器
-/// 负责准确推算一生、今年、本月、今日的时间维度指标
+/// 人生时间、相伴时光与多维度时间流逝计算器
 struct LifeProgressSnapshot {
     let birthDate: Date
     let targetDate: Date
@@ -19,6 +18,13 @@ struct LifeProgressSnapshot {
     let passedMonths: Int
     let remainingMonths: Int
     let currentMonthIndex: Int
+    
+    // MARK: - 在一起纪念日
+    let isTogetherEnabled: Bool
+    let togetherDate: Date?
+    let partnerName: String
+    let togetherDays: Int? // 已经在一起的天数
+    let togetherRemainingDays: Int? // 预期余生携手天数
     
     // MARK: - 年度维度指标
     let currentYear: Int
@@ -41,11 +47,16 @@ struct LifeProgressSnapshot {
 }
 
 enum LifeCalculator {
-    /// 根据出生日期、目标预期年龄及指定基准时间（默认当前）计算全量快照
-    static func calculate(birthDate: Date, targetAge: Int, asOf currentDate: Date = Date()) -> LifeProgressSnapshot {
+    static func calculate(
+        birthDate: Date,
+        targetAge: Int,
+        isTogetherEnabled: Bool = false,
+        togetherDate: Date? = nil,
+        partnerName: String = "TA",
+        asOf currentDate: Date = Date()
+    ) -> LifeProgressSnapshot {
         let calendar = Calendar.current
         
-        // 计算目标终点日期（出生日期 + targetAge 年）
         let targetDate = calendar.date(byAdding: .year, value: targetAge, to: birthDate) ?? birthDate
         
         // 1. 一生总天数与剩余天数
@@ -60,7 +71,16 @@ enum LifeCalculator {
         let remainingMonths = max(0, totalMonths - passedMonths)
         let currentMonthIndex = min(totalMonths - 1, passedMonths)
         
-        // 3. 年度指标
+        // 3. 在一起天数计算
+        var calculatedTogetherDays: Int? = nil
+        var calculatedTogetherRemainingDays: Int? = nil
+        if isTogetherEnabled, let together = togetherDate {
+            let days = calendar.dateComponents([.day], from: together, to: currentDate).day ?? 0
+            calculatedTogetherDays = max(0, days)
+            calculatedTogetherRemainingDays = remainingDays
+        }
+        
+        // 4. 年度指标
         let year = calendar.component(.year, from: currentDate)
         let startOfYear = calendar.date(from: DateComponents(year: year, month: 1, day: 1)) ?? currentDate
         let endOfYear = calendar.date(from: DateComponents(year: year + 1, month: 1, day: 1)) ?? currentDate
@@ -69,7 +89,7 @@ enum LifeCalculator {
         let yearRemainingDays = max(0, yearTotalDays - yearPassedDays)
         let yearProgressRatio = min(1.0, max(0.0, Double(yearPassedDays) / Double(yearTotalDays)))
         
-        // 4. 月度指标
+        // 5. 月度指标
         let month = calendar.component(.month, from: currentDate)
         let rangeOfDaysInMonth = calendar.range(of: .day, in: .month, for: currentDate)
         let monthTotalDays = rangeOfDaysInMonth?.count ?? 30
@@ -78,7 +98,7 @@ enum LifeCalculator {
         let monthRemainingDays = max(0, monthTotalDays - monthPassedDays)
         let monthProgressRatio = min(1.0, max(0.0, Double(monthPassedDays) / Double(monthTotalDays)))
         
-        // 5. 今日指标
+        // 6. 今日指标
         let startOfDay = calendar.startOfDay(for: currentDate)
         let secondsPassedToday = currentDate.timeIntervalSince(startOfDay)
         let totalSecondsToday: Double = 86400
@@ -100,6 +120,11 @@ enum LifeCalculator {
             passedMonths: passedMonths,
             remainingMonths: remainingMonths,
             currentMonthIndex: currentMonthIndex,
+            isTogetherEnabled: isTogetherEnabled,
+            togetherDate: togetherDate,
+            partnerName: partnerName,
+            togetherDays: calculatedTogetherDays,
+            togetherRemainingDays: calculatedTogetherRemainingDays,
             currentYear: year,
             yearTotalDays: yearTotalDays,
             yearPassedDays: yearPassedDays,

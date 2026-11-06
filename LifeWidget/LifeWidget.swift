@@ -13,7 +13,15 @@ struct LifeTimelineProvider: TimelineProvider {
     
     func placeholder(in context: Context) -> LifeWidgetEntry {
         let sampleBirth = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
-        let snapshot = LifeCalculator.calculate(birthDate: sampleBirth, targetAge: 80, asOf: Date())
+        let sampleTogether = Calendar.current.date(byAdding: .day, value: -520, to: Date())
+        let snapshot = LifeCalculator.calculate(
+            birthDate: sampleBirth,
+            targetAge: 80,
+            isTogetherEnabled: true,
+            togetherDate: sampleTogether,
+            partnerName: "TA",
+            asOf: Date()
+        )
         let quote = PhilosophyQuoteRepository.todayQuote()
         return LifeWidgetEntry(date: Date(), snapshot: snapshot, quote: quote)
     }
@@ -34,18 +42,17 @@ struct LifeTimelineProvider: TimelineProvider {
     }
     
     private func currentEntry(for date: Date) -> LifeWidgetEntry {
-        // 优先读取 AppGroup；若无法访问（如未配置证书权限），则平滑降级至标准偏好设置
         let groupDefaults = UserDefaults(suiteName: AppSettings.appGroupIdentifier)
         let standardDefaults = UserDefaults.standard
         
-        var savedTimestamp = groupDefaults?.double(forKey: "user_birth_date") ?? 0
-        if savedTimestamp == 0 {
-            savedTimestamp = standardDefaults.double(forKey: "user_birth_date")
+        // 1. 出生日期
+        var savedBirth = groupDefaults?.double(forKey: "user_birth_date") ?? 0
+        if savedBirth == 0 {
+            savedBirth = standardDefaults.double(forKey: "user_birth_date")
         }
-        
         let birthDate: Date
-        if savedTimestamp > 0 {
-            birthDate = Date(timeIntervalSince1970: savedTimestamp)
+        if savedBirth > 0 {
+            birthDate = Date(timeIntervalSince1970: savedBirth)
         } else {
             var components = DateComponents()
             components.year = 2000
@@ -54,13 +61,38 @@ struct LifeTimelineProvider: TimelineProvider {
             birthDate = Calendar.current.date(from: components) ?? date
         }
         
+        // 2. 目标年龄
         var savedTargetAge = groupDefaults?.integer(forKey: "user_target_age") ?? 0
         if savedTargetAge == 0 {
             savedTargetAge = standardDefaults.integer(forKey: "user_target_age")
         }
         let targetAge = savedTargetAge > 0 ? savedTargetAge : 80
         
-        let snapshot = LifeCalculator.calculate(birthDate: birthDate, targetAge: targetAge, asOf: date)
+        // 3. 在一起纪念日
+        let hasTogetherConfig = groupDefaults?.object(forKey: "is_together_enabled") != nil || standardDefaults.object(forKey: "is_together_enabled") != nil
+        let isTogetherEnabled: Bool
+        if hasTogetherConfig {
+            isTogetherEnabled = groupDefaults?.bool(forKey: "is_together_enabled") ?? standardDefaults.bool(forKey: "is_together_enabled")
+        } else {
+            isTogetherEnabled = true
+        }
+        
+        var savedTogether = groupDefaults?.double(forKey: "user_together_date") ?? 0
+        if savedTogether == 0 {
+            savedTogether = standardDefaults.double(forKey: "user_together_date")
+        }
+        let togetherDate: Date? = savedTogether > 0 ? Date(timeIntervalSince1970: savedTogether) : Calendar.current.date(byAdding: .day, value: -520, to: date)
+        
+        let partnerName = groupDefaults?.string(forKey: "user_partner_name") ?? standardDefaults.string(forKey: "user_partner_name") ?? "TA"
+        
+        let snapshot = LifeCalculator.calculate(
+            birthDate: birthDate,
+            targetAge: targetAge,
+            isTogetherEnabled: isTogetherEnabled,
+            togetherDate: togetherDate,
+            partnerName: partnerName,
+            asOf: date
+        )
         let quote = PhilosophyQuoteRepository.todayQuote(for: date)
         
         return LifeWidgetEntry(date: date, snapshot: snapshot, quote: quote)
@@ -91,7 +123,6 @@ struct LifeWidgetEntryView: View {
     }
 }
 
-// 统一的跨版本小组件背景修饰符
 extension View {
     func widgetContainerBackground() -> some View {
         if #available(iOS 17.0, *) {
@@ -117,7 +148,7 @@ struct LifeCountdownWidget: Widget {
             LifeWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("人生倒计时")
-        .description("向死而生，实时感知生命、年度与今日的时光流逝。")
+        .description("向死而生，感知生命流逝与相伴时光。")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

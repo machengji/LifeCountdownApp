@@ -27,9 +27,29 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section(header: Text("相伴时光与纪念日"), footer: Text("开启后，小组件将为您精美展示和 TA 在一起的流逝天数与余生携手倒计时。")) {
+                    Toggle("开启在一起纪念日", isOn: $settings.isTogetherEnabled)
+                    
+                    if settings.isTogetherEnabled {
+                        DatePicker(
+                            "在一起起始日",
+                            selection: $settings.togetherDate,
+                            in: ...Date(),
+                            displayedComponents: [.date]
+                        )
+                        
+                        HStack {
+                            Text("伴侣称呼")
+                            Spacer()
+                            TextField("例如：宝贝、亲爱的", text: $settings.partnerName)
+                                .multilineTextAlignment(.trailing)
+                        }
+                    }
+                }
+                
                 Section(header: Text("个性化表达")) {
                     HStack {
-                        Text("称呼 / 昵称")
+                        Text("我的称呼")
                         Spacer()
                         TextField("请输入昵称", text: $settings.userName)
                             .multilineTextAlignment(.trailing)
@@ -45,7 +65,7 @@ struct SettingsView: View {
                     .padding(.vertical, 4)
                 }
                 
-                Section(header: Text("桌面与锁屏小组件"), footer: Text("修改出生日期或预期目标后，系统会自动更新小组件。若未及时刷新，可点击上方按钮手动同步。")) {
+                Section(header: Text("桌面与锁屏小组件"), footer: Text("修改日期或目标后，系统会自动更新小组件。若未及时刷新，可点击上方按钮手动同步。")) {
                     Button(action: {
                         settings.notifyWidgetReload()
                         showReloadSuccessAlert = true
@@ -61,7 +81,7 @@ struct SettingsView: View {
                     }) {
                         HStack {
                             Image(systemName: "questionmark.circle")
-                            Text("小组件无法添加或搜不到？查看解决方法")
+                            Text("小组件使用指南与问题排查")
                                 .foregroundColor(.orange)
                         }
                     }
@@ -71,18 +91,19 @@ struct SettingsView: View {
                     HStack {
                         Text("版本号")
                         Spacer()
-                        Text("1.0.1 (含全套高清图标)")
+                        Text("1.0.4 (紧凑小组件与相伴纪念日)")
                             .foregroundColor(.secondary)
                     }
                     HStack {
                         Text("设计哲学")
                         Spacer()
-                        Text("Memento Mori · 珍惜此刻")
+                        Text("Memento Mori · 珍视相伴")
                             .foregroundColor(.secondary)
                     }
                 }
             }
             .navigationTitle("偏好设置")
+            .navigationBarTitleDisplayMode(.inline)
             .alert("小组件同步指令已发出", isPresented: $showReloadSuccessAlert) {
                 Button("确定", role: .cancel) { }
             } message: {
@@ -95,49 +116,43 @@ struct SettingsView: View {
     }
 }
 
-/// 小组件故障排除与侧载使用说明弹窗
+/// 小组件使用说明弹窗
 struct WidgetTroubleshootingView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("为什么桌面搜不到或无法添加小组件？")
+                        Text("小组件使用小技巧")
                             .font(.system(size: 18, weight: .bold))
-                        Text("iOS 系统对第三方小组件（WidgetKit Extension）有严格的安全沙盒与加载时机要求，请按照以下步骤排查：")
+                        Text("全新升级的紧凑版小组件不仅支持人生倒计时，还融合了「在一起已经多少天」的甜蜜相伴记录！")
                             .font(.system(size: 13))
                             .foregroundColor(.secondary)
                     }
                     
                     guideCard(
                         step: "1",
-                        title: "首次安装后必须彻底开启一次主 App",
-                        desc: "iOS 系统的 chronod 守护进程只有在主应用首次冷启动后，才会将其小组件注册到系统的小组件库中。如果刚刚安装，请在主 App 停留 10 秒后返回桌面再尝试添加。"
+                        title: "选择更紧凑的中号小组件 (推荐)",
+                        desc: "如果您觉得大号小组件占了半个屏幕，您可以长按桌面选择【中号小组件 (2x4)】，高度只有大号的一半，左侧是人生环形倒计时，右侧是恋爱相伴天数，极致紧凑、精致耐看！"
                     )
                     
                     guideCard(
                         step: "2",
-                        title: "检查签名工具是否禁用了插件（特别注意！）",
-                        desc: "使用爱思助手等工具进行【免费 Apple ID 签名】时，部分版本默认会剔除或损坏 PlugIns 扩展插件的签名。强烈建议使用 Sideloadly 侧载安装，Sideloadly 会自动为 PlugIns/LifeWidget.appex 正确签名。"
+                        title: "大号小组件已全面消灭空白留白",
+                        desc: "新版大号小组件已重构为高密度紧凑矩阵，中部饱满融入了「在一起天数」卡片与 288 个点阵人生矩阵，排布紧凑有力，绝不再留多余空白！"
                     )
                     
                     guideCard(
                         step: "3",
-                        title: "在锁屏界面尝试添加",
-                        desc: "如果桌面小组件列表中暂时未刷新出来，可以在 iPhone 锁屏界面长按自定，进入锁屏小组件列表查找「人生倒计时」，通常锁屏小组件会被系统更优先索引展示。"
-                    )
-                    
-                    guideCard(
-                        step: "4",
-                        title: "重启 iPhone 让系统重新扫描小组件缓存",
-                        desc: "侧载第三方 Widget 偶尔会遇到 iOS 系统小组件缓存未刷新的情况，简单重启一次 iPhone，桌面上就会立即显示出该 App 的小组件！"
+                        title: "修改在一起日期后记得点刷新",
+                        desc: "在设置里更改了「在一起起始日」后，点击「立即同步并刷新全部小组件」，桌面上的天数就会同步变更。"
                     )
                 }
                 .padding()
             }
-            .navigationTitle("小组件使用指南")
+            .navigationTitle("使用技巧")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
