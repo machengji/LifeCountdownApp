@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build & Package IPA on macOS
-    runs-on: macos-14
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Repository
@@ -18,7 +18,11 @@ jobs:
 
       - name: Select Xcode Version
         run: |
-          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+          if [ -d "/Applications/Xcode_16.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+          elif [ -d "/Applications/Xcode_15.4.app" ]; then
+            sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+          fi
           xcodebuild -version
 
       - name: Archive LifeCountdownApp for iOS Device
@@ -38,7 +42,7 @@ jobs:
         run: |
           APP_PATH="build/LifeCountdownApp.xcarchive/Products/Applications/LifeCountdownApp.app"
           echo "=== PlugIns content ==="
-          ls -la "$APP_PATH/PlugIns"
+          ls -la "$APP_PATH/PlugIns" || echo "No PlugIns!"
           echo "=== App content ==="
           ls -la "$APP_PATH"
 
