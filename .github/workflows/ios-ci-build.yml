@@ -34,6 +34,14 @@ jobs:
                      CODE_SIGN_IDENTITY="" \
                      AD_HOC_CODE_SIGNING_ALLOWED=YES
 
+      - name: Verify PlugIns and AppIcon
+        run: |
+          APP_PATH="build/LifeCountdownApp.xcarchive/Products/Applications/LifeCountdownApp.app"
+          echo "=== PlugIns content ==="
+          ls -la "$APP_PATH/PlugIns"
+          echo "=== App content ==="
+          ls -la "$APP_PATH"
+
       - name: Package into IPA
         run: |
           mkdir -p Payload

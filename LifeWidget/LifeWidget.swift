@@ -11,7 +11,6 @@ struct LifeWidgetEntry: TimelineEntry {
 /// 小组件时间轴提供者
 struct LifeTimelineProvider: TimelineProvider {
     
-    // 占位视图展示的数据
     func placeholder(in context: Context) -> LifeWidgetEntry {
         let sampleBirth = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
         let snapshot = LifeCalculator.calculate(birthDate: sampleBirth, targetAge: 80, asOf: Date())
@@ -19,28 +18,31 @@ struct LifeTimelineProvider: TimelineProvider {
         return LifeWidgetEntry(date: Date(), snapshot: snapshot, quote: quote)
     }
 
-    // 小组件图库中快速预览
     func getSnapshot(in context: Context, completion: @escaping (LifeWidgetEntry) -> Void) {
         let entry = currentEntry(for: Date())
         completion(entry)
     }
 
-    // 实际运行时的时间轴生成策略
     func getTimeline(in context: Context, completion: @escaping (Timeline<LifeWidgetEntry>) -> Void) {
         let currentDate = Date()
         let entry = currentEntry(for: currentDate)
         
-        // 设定下一次自动刷新时间：每小时整点或每日午夜刷新
+        // 设定每小时整点自动刷新一次
         let nextUpdateDate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate) ?? currentDate.addingTimeInterval(3600)
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdateDate))
         completion(timeline)
     }
     
-    /// 从 AppGroup UserDefaults 中提取用户设置并计算快照
     private func currentEntry(for date: Date) -> LifeWidgetEntry {
-        let defaults = UserDefaults(suiteName: AppSettings.appGroupIdentifier) ?? UserDefaults.standard
+        // 优先读取 AppGroup；若无法访问（如未配置证书权限），则平滑降级至标准偏好设置
+        let groupDefaults = UserDefaults(suiteName: AppSettings.appGroupIdentifier)
+        let standardDefaults = UserDefaults.standard
         
-        let savedTimestamp = defaults.double(forKey: "user_birth_date")
+        var savedTimestamp = groupDefaults?.double(forKey: "user_birth_date") ?? 0
+        if savedTimestamp == 0 {
+            savedTimestamp = standardDefaults.double(forKey: "user_birth_date")
+        }
+        
         let birthDate: Date
         if savedTimestamp > 0 {
             birthDate = Date(timeIntervalSince1970: savedTimestamp)
@@ -52,7 +54,10 @@ struct LifeTimelineProvider: TimelineProvider {
             birthDate = Calendar.current.date(from: components) ?? date
         }
         
-        let savedTargetAge = defaults.integer(forKey: "user_target_age")
+        var savedTargetAge = groupDefaults?.integer(forKey: "user_target_age") ?? 0
+        if savedTargetAge == 0 {
+            savedTargetAge = standardDefaults.integer(forKey: "user_target_age")
+        }
         let targetAge = savedTargetAge > 0 ? savedTargetAge : 80
         
         let snapshot = LifeCalculator.calculate(birthDate: birthDate, targetAge: targetAge, asOf: date)
@@ -68,17 +73,37 @@ struct LifeWidgetEntryView: View {
     @Environment(\.widgetFamily) var family
 
     var body: some View {
-        switch family {
-        case .systemSmall:
-            SmallWidgetView(snapshot: entry.snapshot)
-        case .systemMedium:
-            MediumWidgetView(snapshot: entry.snapshot, quote: entry.quote)
-        case .systemLarge:
-            LargeWidgetView(snapshot: entry.snapshot, quote: entry.quote)
-        case .accessoryCircular, .accessoryRectangular, .accessoryInline:
-            LockScreenWidgetView(snapshot: entry.snapshot, quote: entry.quote)
-        default:
-            SmallWidgetView(snapshot: entry.snapshot)
+        Group {
+            switch family {
+            case .systemSmall:
+                SmallWidgetView(snapshot: entry.snapshot)
+            case .systemMedium:
+                MediumWidgetView(snapshot: entry.snapshot, quote: entry.quote)
+            case .systemLarge:
+                LargeWidgetView(snapshot: entry.snapshot, quote: entry.quote)
+            case .accessoryCircular, .accessoryRectangular, .accessoryInline:
+                LockScreenWidgetView(snapshot: entry.snapshot, quote: entry.quote)
+            default:
+                SmallWidgetView(snapshot: entry.snapshot)
+            }
+        }
+        .widgetContainerBackground()
+    }
+}
+
+// 统一的跨版本小组件背景修饰符
+extension View {
+    func widgetContainerBackground() -> some View {
+        if #available(iOS 17.0, *) {
+            return AnyView(
+                self.containerBackground(for: .widget) {
+                    Color(UIColor.secondarySystemBackground)
+                }
+            )
+        } else {
+            return AnyView(
+                self.background(Color(UIColor.secondarySystemBackground))
+            )
         }
     }
 }
@@ -89,15 +114,9 @@ struct LifeCountdownWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: LifeTimelineProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                LifeWidgetEntryView(entry: entry)
-                    .containerBackground(Color(UIColor.secondarySystemBackground), for: .widget)
-            } else {
-                LifeWidgetEntryView(entry: entry)
-                    .background(Color(UIColor.secondarySystemBackground))
-            }
+            LifeWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("人生倒计时印迹")
+        .configurationDisplayName("人生倒计时")
         .description("向死而生，实时感知生命、年度与今日的时光流逝。")
         .supportedFamilies([
             .systemSmall,
@@ -107,5 +126,6 @@ struct LifeCountdownWidget: Widget {
             .accessoryRectangular,
             .accessoryInline
         ])
+        .contentMarginsDisabled()
     }
 }

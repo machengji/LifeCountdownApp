@@ -12,7 +12,7 @@ struct MediumWidgetView: View {
             VStack(spacing: 6) {
                 ZStack {
                     Circle()
-                        .stroke(Color.primary.opacity(0.08), lineWidth: 9)
+                        .stroke(Color.primary.opacity(0.08), lineWidth: 8)
                     
                     Circle()
                         .trim(from: 0.0, to: CGFloat(min(snapshot.lifeProgressRatio, 1.0)))
@@ -21,31 +21,31 @@ struct MediumWidgetView: View {
                                 colors: [.orange, .purple, .orange],
                                 center: .center
                             ),
-                            style: StrokeStyle(lineWidth: 9, lineCap: .round)
+                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
                         )
                         .rotationEffect(.degrees(-90))
                     
                     VStack(spacing: 0) {
                         Text(String(format: "%.1f%%", snapshot.lifeProgressRatio * 100))
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
                         Text("已度过")
-                            .font(.system(size: 9))
+                            .font(.system(size: 8))
                             .foregroundColor(.secondary)
                     }
                 }
-                .frame(width: 80, height: 80)
+                .frame(width: 74, height: 74)
                 
                 Text("余生 \(snapshot.remainingLifeDays) 天")
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundColor(.orange)
             }
-            .frame(width: 95)
+            .frame(width: 85)
             
             Divider()
-                .padding(.vertical, 8)
+                .padding(.vertical, 4)
             
             // 右侧：多维数据与每日箴言
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Label("时间印迹", systemImage: "hourglass")
                         .font(.system(size: 11, weight: .bold))
@@ -77,6 +77,5 @@ struct MediumWidgetView: View {
             }
         }
         .padding(14)
-        .background(Color(UIColor.secondarySystemBackground))
     }
 }

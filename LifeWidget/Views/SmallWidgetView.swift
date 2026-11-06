@@ -59,7 +59,6 @@ struct SmallWidgetView: View {
                 }
             }
         }
-        .padding(12)
-        .background(Color(UIColor.secondarySystemBackground))
+        .padding(14)
     }
 }

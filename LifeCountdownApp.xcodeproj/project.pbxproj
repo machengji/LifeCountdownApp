@@ -18,7 +18,8 @@
 		A0010009 /* LifeGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0020009 /* LifeGridView.swift */; };
 		A001000A /* QuotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A002000A /* QuotesView.swift */; };
 		A001000B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A002000B /* SettingsView.swift */; };
-		A001000C /* LifeWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0010001 /* LifeWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A001000C /* LifeWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0010001 /* LifeWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A001000D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A002000D /* Assets.xcassets */; };
 		
 		/* Widget Sources */
 		B0020001 /* LifeWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0030001 /* LifeWidgetBundle.swift */; };
@@ -49,7 +50,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				A001000C /* LifeWidgetExtension.appex in Embed Foundation Extensions */,
+				A001000C /* LifeWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -70,8 +71,9 @@
 		A002000A /* QuotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuotesView.swift; sourceTree = "<group>"; };
 		A002000B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A002000C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A002000D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		
-		B0010001 /* LifeWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LifeWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0010001 /* LifeWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LifeWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0030001 /* LifeWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeWidgetBundle.swift; sourceTree = "<group>"; };
 		B0030002 /* LifeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeWidget.swift; sourceTree = "<group>"; };
 		B0030003 /* SmallWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmallWidgetView.swift; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 				A0040003 /* App */,
 				A0040004 /* Models */,
 				A0040005 /* Views */,
+				A002000D /* Assets.xcassets */,
 				A002000C /* Info.plist */,
 			);
 			path = LifeCountdownApp;
@@ -185,7 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				A0000001 /* LifeCountdownApp.app */,
-				B0010001 /* LifeWidgetExtension.appex */,
+				B0010001 /* LifeWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -226,7 +229,7 @@
 			);
 			name = LifeWidget;
 			productName = LifeWidget;
-			productReference = B0010001 /* LifeWidgetExtension.appex */;
+			productReference = B0010001 /* LifeWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -270,6 +273,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A001000D /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,7 +444,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.lifecountdown.app.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifecountdown.app.LifeWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -461,7 +465,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.lifecountdown.app.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lifecountdown.app.LifeWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";

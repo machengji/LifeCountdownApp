@@ -3,16 +3,14 @@ import WidgetKit
 import Combine
 
 /// 用户全局偏好配置与小组件共享数据管理器
-/// 通过 App Group UserDefaults 保持主 App 与 WidgetKit 小组件之间的数据实时同步
 final class AppSettings: ObservableObject {
     static let shared = AppSettings()
     
-    // App Group 标识符（需在 Apple Developer 后台及 Capabilities 中配置）
     static let appGroupIdentifier = "group.com.lifecountdown.app"
     
-    private let defaults: UserDefaults
+    private let groupDefaults: UserDefaults?
+    private let standardDefaults = UserDefaults.standard
     
-    // 键名常量定义
     private enum Keys {
         static let birthDate = "user_birth_date"
         static let targetAge = "user_target_age"
@@ -22,46 +20,49 @@ final class AppSettings: ObservableObject {
     
     @Published var birthDate: Date {
         didSet {
-            defaults.set(birthDate.timeIntervalSince1970, forKey: Keys.birthDate)
+            let timestamp = birthDate.timeIntervalSince1970
+            groupDefaults?.set(timestamp, forKey: Keys.birthDate)
+            standardDefaults.set(timestamp, forKey: Keys.birthDate)
             notifyWidgetReload()
         }
     }
     
     @Published var targetAge: Int {
         didSet {
-            defaults.set(targetAge, forKey: Keys.targetAge)
+            groupDefaults?.set(targetAge, forKey: Keys.targetAge)
+            standardDefaults.set(targetAge, forKey: Keys.targetAge)
             notifyWidgetReload()
         }
     }
     
     @Published var userName: String {
         didSet {
-            defaults.set(userName, forKey: Keys.userName)
+            groupDefaults?.set(userName, forKey: Keys.userName)
+            standardDefaults.set(userName, forKey: Keys.userName)
             notifyWidgetReload()
         }
     }
     
     @Published var customMotto: String {
         didSet {
-            defaults.set(customMotto, forKey: Keys.customMotto)
+            groupDefaults?.set(customMotto, forKey: Keys.customMotto)
+            standardDefaults.set(customMotto, forKey: Keys.customMotto)
             notifyWidgetReload()
         }
     }
     
     init() {
-        // 优先使用 App Group 共享容器，保证 Widget 能够直接读取
-        if let groupDefaults = UserDefaults(suiteName: AppSettings.appGroupIdentifier) {
-            self.defaults = groupDefaults
-        } else {
-            self.defaults = UserDefaults.standard
+        self.groupDefaults = UserDefaults(suiteName: AppSettings.appGroupIdentifier)
+        
+        // 优先读取 AppGroup，不存在时读取标准 UserDefaults
+        var savedTimestamp = groupDefaults?.double(forKey: Keys.birthDate) ?? 0
+        if savedTimestamp == 0 {
+            savedTimestamp = standardDefaults.double(forKey: Keys.birthDate)
         }
         
-        // 读取已存储的设置；若无存储记录，使用明确的初始值
-        let savedTimestamp = defaults.double(forKey: Keys.birthDate)
         if savedTimestamp > 0 {
             self.birthDate = Date(timeIntervalSince1970: savedTimestamp)
         } else {
-            // 默认设置为 2000年1月1日
             var components = DateComponents()
             components.year = 2000
             components.month = 1
@@ -69,14 +70,16 @@ final class AppSettings: ObservableObject {
             self.birthDate = Calendar.current.date(from: components) ?? Date()
         }
         
-        let savedTargetAge = defaults.integer(forKey: Keys.targetAge)
+        var savedTargetAge = groupDefaults?.integer(forKey: Keys.targetAge) ?? 0
+        if savedTargetAge == 0 {
+            savedTargetAge = standardDefaults.integer(forKey: Keys.targetAge)
+        }
         self.targetAge = savedTargetAge > 0 ? savedTargetAge : 80
         
-        self.userName = defaults.string(forKey: Keys.userName) ?? "探索者"
-        self.customMotto = defaults.string(forKey: Keys.customMotto) ?? "向死而生，活在当下每一个瞬间。"
+        self.userName = groupDefaults?.string(forKey: Keys.userName) ?? standardDefaults.string(forKey: Keys.userName) ?? "探索者"
+        self.customMotto = groupDefaults?.string(forKey: Keys.customMotto) ?? standardDefaults.string(forKey: Keys.customMotto) ?? "向死而生，活在当下每一个瞬间。"
     }
     
-    /// 当数据变更时通知 WidgetKit 重新计算并刷新桌面小组件
     func notifyWidgetReload() {
         WidgetCenter.shared.reloadAllTimelines()
     }
