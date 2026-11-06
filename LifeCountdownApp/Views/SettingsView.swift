@@ -27,7 +27,7 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section(header: Text("相伴时光与纪念日"), footer: Text("开启后，小组件将为您精美展示和 TA 在一起的流逝天数与余生携手倒计时。")) {
+                Section(header: Text("相伴时光与纪念日"), footer: Text("修改日期后将实时同步至桌面小组件。若未及时生效，可点击下方刷新按钮。")) {
                     Toggle("开启在一起纪念日", isOn: $settings.isTogetherEnabled)
                     
                     if settings.isTogetherEnabled {
@@ -37,6 +37,14 @@ struct SettingsView: View {
                             in: ...Date(),
                             displayedComponents: [.date]
                         )
+                        
+                        HStack {
+                            Text("已相伴时光")
+                            Spacer()
+                            Text("\(settings.calculatedTogetherDays()) 天")
+                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .foregroundColor(.pink)
+                        }
                         
                         HStack {
                             Text("伴侣称呼")
@@ -91,7 +99,7 @@ struct SettingsView: View {
                     HStack {
                         Text("版本号")
                         Spacer()
-                        Text("1.0.4 (紧凑小组件与相伴纪念日)")
+                        Text("1.0.7 (相伴天数深度校准与直传)")
                             .foregroundColor(.secondary)
                     }
                     HStack {
@@ -104,6 +112,9 @@ struct SettingsView: View {
             }
             .navigationTitle("偏好设置")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                settings.persistAll()
+            }
             .alert("小组件同步指令已发出", isPresented: $showReloadSuccessAlert) {
                 Button("确定", role: .cancel) { }
             } message: {

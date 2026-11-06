@@ -12,18 +12,8 @@ struct LifeWidgetEntry: TimelineEntry {
 struct LifeTimelineProvider: TimelineProvider {
     
     func placeholder(in context: Context) -> LifeWidgetEntry {
-        let sampleBirth = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
-        let sampleTogether = Calendar.current.date(byAdding: .day, value: -520, to: Date())
-        let snapshot = LifeCalculator.calculate(
-            birthDate: sampleBirth,
-            targetAge: 80,
-            isTogetherEnabled: true,
-            togetherDate: sampleTogether,
-            partnerName: "TA",
-            asOf: Date()
-        )
-        let quote = PhilosophyQuoteRepository.todayQuote()
-        return LifeWidgetEntry(date: Date(), snapshot: snapshot, quote: quote)
+        // 使用当前真实时间配置计算，绝不使用硬编码的 520 天假数据
+        return currentEntry(for: Date())
     }
 
     func getSnapshot(in context: Context, completion: @escaping (LifeWidgetEntry) -> Void) {
@@ -35,7 +25,8 @@ struct LifeTimelineProvider: TimelineProvider {
         let currentDate = Date()
         let entry = currentEntry(for: currentDate)
         
-        let nextUpdateDate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate) ?? currentDate.addingTimeInterval(3600)
+        // 每半小时刷新一次，保证紧密跟踪
+        let nextUpdateDate = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate) ?? currentDate.addingTimeInterval(1800)
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdateDate))
         completion(timeline)
     }
@@ -44,7 +35,12 @@ struct LifeTimelineProvider: TimelineProvider {
         // 第一优先级：直接从共享磁盘配置文件加载 (最准确，无延迟)
         if let config = AppSettings.loadSharedConfigFromFile() {
             let birthDate = Date(timeIntervalSince1970: config.birthDateTimestamp)
-            let togetherDate = Date(timeIntervalSince1970: config.togetherDateTimestamp)
+            let togetherDate: Date? = {
+                if let ts = config.togetherDateTimestamp, ts > 0 {
+                    return Date(timeIntervalSince1970: ts)
+                }
+                return nil
+            }()
             
             let snapshot = LifeCalculator.calculate(
                 birthDate: birthDate,
@@ -58,14 +54,34 @@ struct LifeTimelineProvider: TimelineProvider {
             return LifeWidgetEntry(date: date, snapshot: snapshot, quote: quote)
         }
         
-        // 第二优先级：从 UserDefaults 读取
-        let groupDefaults = UserDefaults(suiteName: AppSettings.appGroupIdentifier)
-        let standardDefaults = UserDefaults.standard
+        // 第二优先级：从候选 AppGroups 及 Standard UserDefaults 读取
+        var savedBirth: Double = 0
+        var savedTargetAge: Int = 0
+        var savedTogetherEnabled: Bool? = nil
+        var savedTogether: Double = 0
+        var savedPartner: String? = nil
         
-        var savedBirth = groupDefaults?.double(forKey: "user_birth_date") ?? 0
-        if savedBirth == 0 {
-            savedBirth = standardDefaults.double(forKey: "user_birth_date")
+        for group in AppSettings.appGroupCandidates {
+            if let ud = UserDefaults(suiteName: group) {
+                if savedBirth == 0 { savedBirth = ud.double(forKey: AppSettings.Keys.birthDate) }
+                if savedTargetAge == 0 { savedTargetAge = ud.integer(forKey: AppSettings.Keys.targetAge) }
+                if savedTogetherEnabled == nil && ud.object(forKey: AppSettings.Keys.isTogetherEnabled) != nil {
+                    savedTogetherEnabled = ud.bool(forKey: AppSettings.Keys.isTogetherEnabled)
+                }
+                if savedTogether == 0 { savedTogether = ud.double(forKey: AppSettings.Keys.togetherDate) }
+                if savedPartner == nil { savedPartner = ud.string(forKey: AppSettings.Keys.partnerName) }
+            }
         }
+        
+        let standardDefaults = UserDefaults.standard
+        if savedBirth == 0 { savedBirth = standardDefaults.double(forKey: AppSettings.Keys.birthDate) }
+        if savedTargetAge == 0 { savedTargetAge = standardDefaults.integer(forKey: AppSettings.Keys.targetAge) }
+        if savedTogetherEnabled == nil && standardDefaults.object(forKey: AppSettings.Keys.isTogetherEnabled) != nil {
+            savedTogetherEnabled = standardDefaults.bool(forKey: AppSettings.Keys.isTogetherEnabled)
+        }
+        if savedTogether == 0 { savedTogether = standardDefaults.double(forKey: AppSettings.Keys.togetherDate) }
+        if savedPartner == nil { savedPartner = standardDefaults.string(forKey: AppSettings.Keys.partnerName) }
+        
         let birthDate: Date
         if savedBirth > 0 {
             birthDate = Date(timeIntervalSince1970: savedBirth)
@@ -77,27 +93,11 @@ struct LifeTimelineProvider: TimelineProvider {
             birthDate = Calendar.current.date(from: components) ?? date
         }
         
-        var savedTargetAge = groupDefaults?.integer(forKey: "user_target_age") ?? 0
-        if savedTargetAge == 0 {
-            savedTargetAge = standardDefaults.integer(forKey: "user_target_age")
-        }
         let targetAge = savedTargetAge > 0 ? savedTargetAge : 80
-        
-        let hasTogetherConfig = groupDefaults?.object(forKey: "is_together_enabled") != nil || standardDefaults.object(forKey: "is_together_enabled") != nil
-        let isTogetherEnabled: Bool
-        if hasTogetherConfig {
-            isTogetherEnabled = groupDefaults?.bool(forKey: "is_together_enabled") ?? standardDefaults.bool(forKey: "is_together_enabled")
-        } else {
-            isTogetherEnabled = true
-        }
-        
-        var savedTogether = groupDefaults?.double(forKey: "user_together_date") ?? 0
-        if savedTogether == 0 {
-            savedTogether = standardDefaults.double(forKey: "user_together_date")
-        }
-        let togetherDate: Date? = savedTogether > 0 ? Date(timeIntervalSince1970: savedTogether) : Calendar.current.date(byAdding: .year, value: -1, to: date)
-        
-        let partnerName = groupDefaults?.string(forKey: "user_partner_name") ?? standardDefaults.string(forKey: "user_partner_name") ?? "TA"
+        let isTogetherEnabled = savedTogetherEnabled ?? true
+        // 严格遵循业务规则：未配置就是 nil，绝不擅自造假
+        let togetherDate: Date? = savedTogether > 0 ? Date(timeIntervalSince1970: savedTogether) : nil
+        let partnerName = savedPartner ?? "TA"
         
         let snapshot = LifeCalculator.calculate(
             birthDate: birthDate,

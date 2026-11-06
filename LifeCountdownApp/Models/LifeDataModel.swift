@@ -75,7 +75,9 @@ enum LifeCalculator {
         var calculatedTogetherDays: Int? = nil
         var calculatedTogetherRemainingDays: Int? = nil
         if isTogetherEnabled, let together = togetherDate {
-            let days = calendar.dateComponents([.day], from: together, to: currentDate).day ?? 0
+            let startOfTogether = calendar.startOfDay(for: together)
+            let startOfCurrent = calendar.startOfDay(for: currentDate)
+            let days = calendar.dateComponents([.day], from: startOfTogether, to: startOfCurrent).day ?? 0
             calculatedTogetherDays = max(0, days)
             calculatedTogetherRemainingDays = remainingDays
         }

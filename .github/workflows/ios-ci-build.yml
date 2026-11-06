@@ -46,6 +46,28 @@ jobs:
           echo "=== App content ==="
           ls -la "$APP_PATH"
 
+      - name: Inject Entitlements & Ad-Hoc Sign
+        run: |
+          APP_PATH="build/LifeCountdownApp.xcarchive/Products/Applications/LifeCountdownApp.app"
+          WIDGET_PATH="$APP_PATH/PlugIns/LifeWidget.appex"
+          
+          echo "=== Copying entitlements files ==="
+          cp LifeCountdownApp/LifeCountdownApp.entitlements "$APP_PATH/archived-expanded-entitlements.xcent"
+          if [ -d "$WIDGET_PATH" ]; then
+            cp LifeWidget/LifeWidget.entitlements "$WIDGET_PATH/archived-expanded-entitlements.xcent"
+            echo "=== Ad-Hoc signing LifeWidget.appex with Entitlements ==="
+            codesign --force --sign - --entitlements LifeWidget/LifeWidget.entitlements --timestamp=none "$WIDGET_PATH"
+          fi
+          
+          echo "=== Ad-Hoc signing LifeCountdownApp.app with Entitlements ==="
+          codesign --force --sign - --entitlements LifeCountdownApp/LifeCountdownApp.entitlements --timestamp=none "$APP_PATH"
+          
+          echo "=== Verifying entitlements on binaries ==="
+          if [ -d "$WIDGET_PATH" ]; then
+            codesign -d --entitlements :- "$WIDGET_PATH" || true
+          fi
+          codesign -d --entitlements :- "$APP_PATH" || true
+
       - name: Package into IPA
         run: |
           mkdir -p Payload

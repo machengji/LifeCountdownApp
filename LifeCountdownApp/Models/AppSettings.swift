@@ -9,7 +9,7 @@ struct SharedAppConfig: Codable {
     var userName: String
     var customMotto: String
     var isTogetherEnabled: Bool
-    var togetherDateTimestamp: Double
+    var togetherDateTimestamp: Double?
     var partnerName: String
     var lastUpdated: Double
 }
@@ -18,13 +18,25 @@ struct SharedAppConfig: Codable {
 final class AppSettings: ObservableObject {
     static let shared = AppSettings()
     
-    static let appGroupIdentifier = "group.com.lifecountdown.app"
+    static let defaultAppGroup = "group.com.lifecountdown.app"
     private static let configFileName = "life_config.json"
     
-    private let groupDefaults: UserDefaults?
+    /// 获取当前可能存在的所有 AppGroup 标识符候选（兼容个人免费证书侧载重命名 BundleID 的情况）
+    static var appGroupCandidates: [String] {
+        var candidates = [defaultAppGroup]
+        if let bundleId = Bundle.main.bundleIdentifier {
+            let cleanId = bundleId.replacingOccurrences(of: ".LifeWidget", with: "")
+            let customGroup = "group.\(cleanId)"
+            if !candidates.contains(customGroup) {
+                candidates.append(customGroup)
+            }
+        }
+        return candidates
+    }
+    
     private let standardDefaults = UserDefaults.standard
     
-    private enum Keys {
+    enum Keys {
         static let birthDate = "user_birth_date"
         static let targetAge = "user_target_age"
         static let userName = "user_name"
@@ -63,27 +75,62 @@ final class AppSettings: ObservableObject {
     }
     
     init() {
-        self.groupDefaults = UserDefaults(suiteName: AppSettings.appGroupIdentifier)
-        
-        // 优先从共享物理文件加载配置
+        // 1. 优先从共享物理文件加载配置
         if let config = AppSettings.loadSharedConfigFromFile() {
             self.birthDate = Date(timeIntervalSince1970: config.birthDateTimestamp)
             self.targetAge = config.targetAge
             self.userName = config.userName
             self.customMotto = config.customMotto
             self.isTogetherEnabled = config.isTogetherEnabled
-            self.togetherDate = Date(timeIntervalSince1970: config.togetherDateTimestamp)
+            if let ts = config.togetherDateTimestamp, ts > 0 {
+                self.togetherDate = Date(timeIntervalSince1970: ts)
+            } else {
+                var comp = DateComponents()
+                comp.year = 2024
+                comp.month = 5
+                comp.day = 20
+                self.togetherDate = Calendar.current.date(from: comp) ?? Date()
+            }
             self.partnerName = config.partnerName
             return
         }
         
-        // 降级：从 UserDefaults 读取
-        var savedBirth = groupDefaults?.double(forKey: Keys.birthDate) ?? 0
-        if savedBirth == 0 {
-            savedBirth = standardDefaults.double(forKey: Keys.birthDate)
+        // 2. 尝试从各个候选 AppGroup UserDefaults 或 Standard 读取
+        var loadedBirth: Double = 0
+        var loadedTargetAge: Int = 0
+        var loadedName: String? = nil
+        var loadedMotto: String? = nil
+        var loadedTogetherEnabled: Bool? = nil
+        var loadedTogetherTs: Double = 0
+        var loadedPartner: String? = nil
+        
+        for group in AppSettings.appGroupCandidates {
+            if let ud = UserDefaults(suiteName: group) {
+                if loadedBirth == 0 { loadedBirth = ud.double(forKey: Keys.birthDate) }
+                if loadedTargetAge == 0 { loadedTargetAge = ud.integer(forKey: Keys.targetAge) }
+                if loadedName == nil { loadedName = ud.string(forKey: Keys.userName) }
+                if loadedMotto == nil { loadedMotto = ud.string(forKey: Keys.customMotto) }
+                if loadedTogetherEnabled == nil && ud.object(forKey: Keys.isTogetherEnabled) != nil {
+                    loadedTogetherEnabled = ud.bool(forKey: Keys.isTogetherEnabled)
+                }
+                if loadedTogetherTs == 0 { loadedTogetherTs = ud.double(forKey: Keys.togetherDate) }
+                if loadedPartner == nil { loadedPartner = ud.string(forKey: Keys.partnerName) }
+            }
         }
-        if savedBirth > 0 {
-            self.birthDate = Date(timeIntervalSince1970: savedBirth)
+        
+        // Standard defaults
+        if loadedBirth == 0 { loadedBirth = standardDefaults.double(forKey: Keys.birthDate) }
+        if loadedTargetAge == 0 { loadedTargetAge = standardDefaults.integer(forKey: Keys.targetAge) }
+        if loadedName == nil { loadedName = standardDefaults.string(forKey: Keys.userName) }
+        if loadedMotto == nil { loadedMotto = standardDefaults.string(forKey: Keys.customMotto) }
+        if loadedTogetherEnabled == nil && standardDefaults.object(forKey: Keys.isTogetherEnabled) != nil {
+            loadedTogetherEnabled = standardDefaults.bool(forKey: Keys.isTogetherEnabled)
+        }
+        if loadedTogetherTs == 0 { loadedTogetherTs = standardDefaults.double(forKey: Keys.togetherDate) }
+        if loadedPartner == nil { loadedPartner = standardDefaults.string(forKey: Keys.partnerName) }
+        
+        if loadedBirth > 0 {
+            self.birthDate = Date(timeIntervalSince1970: loadedBirth)
         } else {
             var components = DateComponents()
             components.year = 2000
@@ -92,35 +139,23 @@ final class AppSettings: ObservableObject {
             self.birthDate = Calendar.current.date(from: components) ?? Date()
         }
         
-        var savedTargetAge = groupDefaults?.integer(forKey: Keys.targetAge) ?? 0
-        if savedTargetAge == 0 {
-            savedTargetAge = standardDefaults.integer(forKey: Keys.targetAge)
-        }
-        self.targetAge = savedTargetAge > 0 ? savedTargetAge : 80
+        self.targetAge = loadedTargetAge > 0 ? loadedTargetAge : 80
+        self.userName = loadedName ?? "探索者"
+        self.customMotto = loadedMotto ?? "向死而生，活在当下每一个瞬间。"
+        self.isTogetherEnabled = loadedTogetherEnabled ?? true
         
-        self.userName = groupDefaults?.string(forKey: Keys.userName) ?? standardDefaults.string(forKey: Keys.userName) ?? "探索者"
-        self.customMotto = groupDefaults?.string(forKey: Keys.customMotto) ?? standardDefaults.string(forKey: Keys.customMotto) ?? "向死而生，活在当下每一个瞬间。"
-        
-        let hasTogetherConfig = groupDefaults?.object(forKey: Keys.isTogetherEnabled) != nil || standardDefaults.object(forKey: Keys.isTogetherEnabled) != nil
-        if hasTogetherConfig {
-            self.isTogetherEnabled = groupDefaults?.bool(forKey: Keys.isTogetherEnabled) ?? standardDefaults.bool(forKey: Keys.isTogetherEnabled)
+        if loadedTogetherTs > 0 {
+            self.togetherDate = Date(timeIntervalSince1970: loadedTogetherTs)
         } else {
-            self.isTogetherEnabled = true
+            var comp = DateComponents()
+            comp.year = 2024
+            comp.month = 5
+            comp.day = 20
+            self.togetherDate = Calendar.current.date(from: comp) ?? Date()
         }
         
-        var savedTogether = groupDefaults?.double(forKey: Keys.togetherDate) ?? 0
-        if savedTogether == 0 {
-            savedTogether = standardDefaults.double(forKey: Keys.togetherDate)
-        }
-        if savedTogether > 0 {
-            self.togetherDate = Date(timeIntervalSince1970: savedTogether)
-        } else {
-            self.togetherDate = Calendar.current.date(byAdding: .year, value: -1, to: Date()) ?? Date()
-        }
+        self.partnerName = loadedPartner ?? "TA"
         
-        self.partnerName = groupDefaults?.string(forKey: Keys.partnerName) ?? standardDefaults.string(forKey: Keys.partnerName) ?? "TA"
-        
-        // 初始持久化一次
         persistAll()
     }
     
@@ -129,29 +164,31 @@ final class AppSettings: ObservableObject {
         let birthTs = birthDate.timeIntervalSince1970
         let togetherTs = togetherDate.timeIntervalSince1970
         
-        // 1. 写入 UserDefaults (AppGroup 与 Standard 双写)
-        groupDefaults?.set(birthTs, forKey: Keys.birthDate)
+        // 1. 写入所有可用的 AppGroup UserDefaults
+        for group in AppSettings.appGroupCandidates {
+            if let ud = UserDefaults(suiteName: group) {
+                ud.set(birthTs, forKey: Keys.birthDate)
+                ud.set(targetAge, forKey: Keys.targetAge)
+                ud.set(userName, forKey: Keys.userName)
+                ud.set(customMotto, forKey: Keys.customMotto)
+                ud.set(isTogetherEnabled, forKey: Keys.isTogetherEnabled)
+                ud.set(togetherTs, forKey: Keys.togetherDate)
+                ud.set(partnerName, forKey: Keys.partnerName)
+                ud.synchronize()
+            }
+        }
+        
+        // 2. 写入 Standard UserDefaults
         standardDefaults.set(birthTs, forKey: Keys.birthDate)
-        
-        groupDefaults?.set(targetAge, forKey: Keys.targetAge)
         standardDefaults.set(targetAge, forKey: Keys.targetAge)
-        
-        groupDefaults?.set(userName, forKey: Keys.userName)
         standardDefaults.set(userName, forKey: Keys.userName)
-        
-        groupDefaults?.set(customMotto, forKey: Keys.customMotto)
         standardDefaults.set(customMotto, forKey: Keys.customMotto)
-        
-        groupDefaults?.set(isTogetherEnabled, forKey: Keys.isTogetherEnabled)
         standardDefaults.set(isTogetherEnabled, forKey: Keys.isTogetherEnabled)
-        
-        groupDefaults?.set(togetherTs, forKey: Keys.togetherDate)
         standardDefaults.set(togetherTs, forKey: Keys.togetherDate)
-        
-        groupDefaults?.set(partnerName, forKey: Keys.partnerName)
         standardDefaults.set(partnerName, forKey: Keys.partnerName)
+        standardDefaults.synchronize()
         
-        // 2. 写入 AppGroup 共享磁盘文件 (绕过所有缓存限制，最强稳定性)
+        // 3. 写入 AppGroup 共享磁盘文件
         let config = SharedAppConfig(
             birthDateTimestamp: birthTs,
             targetAge: targetAge,
@@ -164,7 +201,7 @@ final class AppSettings: ObservableObject {
         )
         AppSettings.saveSharedConfigToFile(config)
         
-        // 3. 立即重载所有 Widget 时间轴
+        // 4. 立即请求重载所有 Widget 时间轴
         notifyWidgetReload()
     }
     
@@ -172,34 +209,42 @@ final class AppSettings: ObservableObject {
         WidgetCenter.shared.reloadAllTimelines()
     }
     
+    /// 计算从相伴起始日到指定日期的自然日天数
+    func calculatedTogetherDays(asOf date: Date = Date()) -> Int {
+        let cal = Calendar.current
+        let startOfTogether = cal.startOfDay(for: togetherDate)
+        let startOfCurrent = cal.startOfDay(for: date)
+        let diff = cal.dateComponents([.day], from: startOfTogether, to: startOfCurrent).day ?? 0
+        return max(0, diff)
+    }
+    
     // MARK: - 跨进程物理文件直接读写
-    static func getSharedFileUrl() -> URL? {
-        if let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
-            return containerUrl.appendingPathComponent(configFileName)
+    static func getSharedFileUrls() -> [URL] {
+        var urls: [URL] = []
+        for group in appGroupCandidates {
+            if let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) {
+                let fileUrl = containerUrl.appendingPathComponent(configFileName)
+                urls.append(fileUrl)
+            }
         }
-        return nil
+        return urls
     }
     
     static func saveSharedConfigToFile(_ config: SharedAppConfig) {
-        guard let url = getSharedFileUrl() else { return }
-        do {
-            let data = try JSONEncoder().encode(config)
-            try data.write(to: url, options: .atomic)
-        } catch {
-            print("Failed to save shared config: \(error)")
+        guard let data = try? JSONEncoder().encode(config) else { return }
+        for url in getSharedFileUrls() {
+            try? data.write(to: url, options: .atomic)
         }
     }
     
     static func loadSharedConfigFromFile() -> SharedAppConfig? {
-        guard let url = getSharedFileUrl(), FileManager.default.fileExists(atPath: url.path) else {
-            return nil
+        for url in getSharedFileUrls() {
+            if FileManager.default.fileExists(atPath: url.path),
+               let data = try? Data(contentsOf: url),
+               let config = try? JSONDecoder().decode(SharedAppConfig.self, from: data) {
+                return config
+            }
         }
-        do {
-            let data = try Data(contentsOf: url)
-            return try JSONDecoder().decode(SharedAppConfig.self, from: data)
-        } catch {
-            print("Failed to load shared config: \(error)")
-            return nil
-        }
+        return nil
     }
 }
