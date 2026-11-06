@@ -10,3 +10,9 @@ DerivedData/
 
 # User-specific
 xcuserdata/
+
+# Build artifacts & temp
+dist/
+*.zip
+publish_*.py
+fix_*.py

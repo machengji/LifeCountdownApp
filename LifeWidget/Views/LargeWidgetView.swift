@@ -1,157 +1,324 @@
 import SwiftUI
 import WidgetKit
 
-/// 桌面大号小组件 (SystemLarge 4x4)
-/// 紧凑高密度排布：人生倒计时 + 伴侣相伴天数卡片 + 饱满人生点阵网格 + 多维流逝与箴言
+/// 桌面大号小组件 (SystemLarge 4x4) · 顶级艺术与质感高定版
+/// 曜石流光黑金设计 · 双核心生命与相伴能量卡片 · 璀璨星河时光点阵 · 三联药丸胶囊
 struct LargeWidgetView: View {
     let snapshot: LifeProgressSnapshot
     let quote: PhilosophyQuote
     
-    // 采用 24 列高密度点阵，确保纵向饱满充实
-    private let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 24)
+    // 20列高质感微星芒点阵
+    private let matrixColumns = Array(repeating: GridItem(.flexible(), spacing: 3.5), count: 20)
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // 1. 顶部人生总倒计时栏
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("人生倒计时印迹")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
-                    Text("目标设定：\(snapshot.targetAge) 岁")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    HStack(alignment: .lastTextBaseline, spacing: 2) {
-                        Text("余")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.orange)
-                        Text("\(snapshot.remainingLifeDays)")
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundColor(.orange)
-                        Text("天")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.orange)
-                    }
-                    Text("已度过 \(String(format: "%.1f%%", snapshot.lifeProgressRatio * 100))")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            // 2. 在一起相伴纪念日紧凑卡片 (用户特别指定新增功能)
-            if let togetherDays = snapshot.togetherDays {
-                HStack(spacing: 10) {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(colors: [Color.pink.opacity(0.2), Color.red.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 32, height: 32)
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(.pink)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("和 \(snapshot.partnerName) 已经在一起")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.secondary)
-                        
-                        HStack(alignment: .lastTextBaseline, spacing: 3) {
-                            Text("\(togetherDays)")
-                                .font(.system(size: 17, weight: .bold, design: .rounded))
-                                .foregroundColor(.pink)
-                            Text("天")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("余生同行")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                        Text("共赴每刻")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.primary.opacity(0.8))
-                    }
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.primary.opacity(0.04))
-                )
-            }
-            
-            // 3. 饱满人生小格网格 (消灭原本多余的空白空间，排布紧凑有力)
-            VStack(alignment: .leading, spacing: 3) {
-                HStack {
-                    Text("人生格网")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.primary.opacity(0.8))
-                    Spacer()
-                    Text("已过 \(snapshot.passedMonths) 月 · 剩余 \(snapshot.remainingMonths) 月")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                }
+        VStack(spacing: 11) {
+            // MARK: - 1. 顶部双核心 Hero 卡片 (左人生倒计时，右相伴纪念日)
+            HStack(spacing: 9) {
+                // 左核心：人生余生天数
+                lifeHeroCard
                 
-                // 渲染 24列 x 12行 = 288个紧凑方块
-                let sampleCount = min(snapshot.totalMonths, 288)
-                LazyVGrid(columns: gridColumns, spacing: 2.5) {
-                    ForEach(0..<sampleCount, id: \.self) { index in
-                        let mappedMonth = Int(Double(index) / Double(sampleCount) * Double(snapshot.totalMonths))
-                        let isPassed = mappedMonth < snapshot.passedMonths
-                        let isCurrent = mappedMonth == snapshot.passedMonths
-                        
-                        RoundedRectangle(cornerRadius: 1.5)
-                            .fill(isCurrent ? Color.orange : (isPassed ? Color.secondary.opacity(0.35) : Color.primary.opacity(0.08)))
-                            .frame(height: 6)
-                    }
+                // 右核心：相伴天数 (若开启) 或 年度终章卡片
+                if let togetherDays = snapshot.togetherDays {
+                    togetherHeroCard(togetherDays: togetherDays)
+                } else {
+                    yearHeroCard
                 }
             }
+            .frame(height: 82)
+            
+            // MARK: - 2. 中部：璀璨星河人生织锦 (高质感点阵，杜绝密集方块)
+            lifeGalaxyMatrixSection
             
             Spacer(minLength: 0)
             
-            // 4. 底部多维度时间指标与生命箴言
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 10) {
-                    miniDimension(label: "\(snapshot.currentYear)年", ratio: snapshot.yearProgressRatio, remaining: "\(snapshot.yearRemainingDays)天", color: .blue)
-                    miniDimension(label: "\(snapshot.currentMonth)月", ratio: snapshot.monthProgressRatio, remaining: "\(snapshot.monthRemainingDays)天", color: .teal)
-                    miniDimension(label: "今日", ratio: snapshot.dayProgressRatio, remaining: "\(snapshot.dayRemainingHours)小时", color: .orange)
-                }
-                
-                Text("“\(quote.content)” — \(quote.author)")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
+            // MARK: - 3. 下部：三联时光胶囊 (年度/月度/今日)
+            timeCapsulesRow
+            
+            // MARK: - 4. 底部：经典生命哲学箴言
+            quoteFooter
         }
         .padding(14)
+        .widgetURL(URL(string: "lifecountdown://home"))
     }
     
-    private func miniDimension(label: String, ratio: Double, remaining: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                Text(label)
-                    .font(.system(size: 10, weight: .medium))
+    // MARK: - 左侧：人生余生 Hero 卡片
+    private var lifeHeroCard: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 4) {
+                Image(systemName: "hourglass")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(Color(red: 1.0, green: 0.65, blue: 0.15))
+                Text("余生倒计时")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white.opacity(0.75))
                 Spacer()
-                Text(remaining)
-                    .font(.system(size: 9))
-                    .foregroundColor(.secondary)
+                Text("已行 \(String(format: "%.0f%%", snapshot.lifeProgressRatio * 100))")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundColor(Color(red: 1.0, green: 0.65, blue: 0.15))
             }
+            
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
+                Text("\(snapshot.remainingLifeDays)")
+                    .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
+                Text("天")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(red: 1.0, green: 0.65, blue: 0.15))
+            }
+            
+            // 微光生命刻度细线
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Color.primary.opacity(0.08))
-                    Capsule().fill(color)
-                        .frame(width: max(0, min(geo.size.width, geo.size.width * CGFloat(ratio))))
+                    Capsule()
+                        .fill(Color.white.opacity(0.12))
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(red: 1.0, green: 0.6, blue: 0.1), Color(red: 0.95, green: 0.3, blue: 0.4)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: max(0, min(geo.size.width, geo.size.width * CGFloat(snapshot.lifeProgressRatio))))
                 }
             }
             .frame(height: 3)
+            .padding(.top, 2)
+            
+            Text("设 \(snapshot.targetAge) 岁终章")
+                .font(.system(size: 9))
+                .foregroundColor(.white.opacity(0.5))
         }
-        .frame(maxWidth: .infinity)
+        .padding(9)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white.opacity(0.07))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color(red: 1.0, green: 0.6, blue: 0.15).opacity(0.25), lineWidth: 0.8)
+                )
+        )
+    }
+    
+    // MARK: - 右侧：甜蜜相伴 Hero 卡片
+    private func togetherHeroCard(togetherDays: Int) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 4) {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.55))
+                Text("与\(snapshot.partnerName)相伴")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white.opacity(0.75))
+                    .lineLimit(1)
+                Spacer()
+                Text("共赴")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.55))
+            }
+            
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
+                Text("\(togetherDays)")
+                    .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
+                Text("天")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(red: 1.0, green: 0.35, blue: 0.55))
+            }
+            
+            // 爱情微光细线
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.12))
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(red: 1.0, green: 0.35, blue: 0.55), Color(red: 0.85, green: 0.2, blue: 0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geo.size.width)
+                }
+            }
+            .frame(height: 3)
+            .padding(.top, 2)
+            
+            if let rem = snapshot.togetherRemainingDays {
+                Text("余生同行 \(rem) 天")
+                    .font(.system(size: 9))
+                    .foregroundColor(.white.opacity(0.5))
+            } else {
+                Text("朝夕相守 · 每瞬皆诗")
+                    .font(.system(size: 9))
+                    .foregroundColor(.white.opacity(0.5))
+            }
+        }
+        .padding(9)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white.opacity(0.07))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color(red: 1.0, green: 0.35, blue: 0.55).opacity(0.25), lineWidth: 0.8)
+                )
+        )
+    }
+    
+    // MARK: - 未配置相伴时的备用卡片
+    private var yearHeroCard: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 4) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(Color(red: 0.3, green: 0.75, blue: 1.0))
+                Text("\(snapshot.currentYear)年度")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white.opacity(0.75))
+                Spacer()
+                Text("已过\(String(format: "%.0f%%", snapshot.yearProgressRatio * 100))")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(Color(red: 0.3, green: 0.75, blue: 1.0))
+            }
+            
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
+                Text("\(snapshot.yearRemainingDays)")
+                    .font(.system(size: 26, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                Text("天剩")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(red: 0.3, green: 0.75, blue: 1.0))
+            }
+            
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.12))
+                    Capsule().fill(Color(red: 0.3, green: 0.75, blue: 1.0))
+                        .frame(width: max(0, min(geo.size.width, geo.size.width * CGFloat(snapshot.yearProgressRatio))))
+                }
+            }
+            .frame(height: 3)
+            .padding(.top, 2)
+            
+            Text("步履不停 · 奔赴热爱")
+                .font(.system(size: 9))
+                .foregroundColor(.white.opacity(0.5))
+        }
+        .padding(9)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white.opacity(0.07))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color(red: 0.3, green: 0.75, blue: 1.0).opacity(0.25), lineWidth: 0.8)
+                )
+        )
+    }
+    
+    // MARK: - 2. 璀璨星河时光点阵 (高定版)
+    private var lifeGalaxyMatrixSection: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(red: 1.0, green: 0.7, blue: 0.2))
+                    Text("生命星河织锦")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                Spacer()
+                Text("\(snapshot.passedMonths) 印迹已过 · 余 \(snapshot.remainingMonths) 月")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.55))
+            }
+            
+            // 200 个精雕时光微圆点 (20列 x 10行)
+            let sampleCount = 200
+            LazyVGrid(columns: matrixColumns, spacing: 3.5) {
+                ForEach(0..<sampleCount, id: \.self) { index in
+                    let mappedMonth = Int(Double(index) / Double(sampleCount) * Double(snapshot.totalMonths))
+                    let isPassed = mappedMonth < snapshot.passedMonths
+                    let isCurrent = mappedMonth == snapshot.passedMonths
+                    
+                    ZStack {
+                        Circle()
+                            .fill(dotColor(isPassed: isPassed, isCurrent: isCurrent))
+                            .frame(height: 5.5)
+                        
+                        if isCurrent {
+                            Circle()
+                                .stroke(Color(red: 1.0, green: 0.65, blue: 0.15), lineWidth: 1.2)
+                                .scaleEffect(1.6)
+                        }
+                    }
+                }
+            }
+            .padding(.vertical, 7)
+            .padding(.horizontal, 9)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.04))
+            )
+        }
+    }
+    
+    private func dotColor(isPassed: Bool, isCurrent: Bool) -> Color {
+        if isCurrent {
+            return Color(red: 1.0, green: 0.7, blue: 0.2) // 璀璨高光金
+        } else if isPassed {
+            return Color.white.opacity(0.35) // 已走过星轨
+        } else {
+            return Color.white.opacity(0.08) // 未来星芒
+        }
+    }
+    
+    // MARK: - 3. 三联时光胶囊 (年度/月度/今日)
+    private var timeCapsulesRow: some View {
+        HStack(spacing: 6) {
+            pillChip(icon: "calendar", title: "\(snapshot.currentYear)年", value: "剩\(snapshot.yearRemainingDays)天", color: Color(red: 0.35, green: 0.75, blue: 1.0))
+            pillChip(icon: "calendar.badge.clock", title: "\(snapshot.currentMonth)月", value: "剩\(snapshot.monthRemainingDays)天", color: Color(red: 0.3, green: 0.88, blue: 0.75))
+            pillChip(icon: "sun.max.fill", title: "今日", value: "剩\(snapshot.dayRemainingHours)h", color: Color(red: 1.0, green: 0.65, blue: 0.2))
+        }
+    }
+    
+    private func pillChip(icon: String, title: String, value: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 9))
+                .foregroundColor(color)
+            Text(title)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.white.opacity(0.7))
+            Spacer(minLength: 0)
+            Text(value)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(
+            Capsule()
+                .fill(Color.white.opacity(0.06))
+        )
+    }
+    
+    // MARK: - 4. 底部生命金句
+    private var quoteFooter: some View {
+        HStack(spacing: 5) {
+            Text("“")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(Color(red: 1.0, green: 0.7, blue: 0.2))
+            Text("\(quote.content) — \(quote.author)")
+                .font(.system(size: 10))
+                .foregroundColor(.white.opacity(0.6))
+                .lineLimit(1)
+            Spacer()
+        }
+        .padding(.top, 1)
     }
 }

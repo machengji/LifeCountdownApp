@@ -35,7 +35,6 @@ struct LifeTimelineProvider: TimelineProvider {
         let currentDate = Date()
         let entry = currentEntry(for: currentDate)
         
-        // 设定每小时整点自动刷新一次
         let nextUpdateDate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate) ?? currentDate.addingTimeInterval(3600)
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdateDate))
         completion(timeline)
@@ -123,17 +122,36 @@ struct LifeWidgetEntryView: View {
     }
 }
 
+// 统一的深邃黑曜石高级暗黑质感背景
 extension View {
     func widgetContainerBackground() -> some View {
         if #available(iOS 17.0, *) {
             return AnyView(
                 self.containerBackground(for: .widget) {
-                    Color(UIColor.secondarySystemBackground)
+                    ZStack {
+                        Color(red: 0.08, green: 0.08, blue: 0.10)
+                        RadialGradient(
+                            colors: [Color(red: 1.0, green: 0.6, blue: 0.1).opacity(0.06), Color.clear],
+                            center: .topTrailing,
+                            startRadius: 20,
+                            endRadius: 200
+                        )
+                    }
                 }
             )
         } else {
             return AnyView(
-                self.background(Color(UIColor.secondarySystemBackground))
+                self.background(
+                    ZStack {
+                        Color(red: 0.08, green: 0.08, blue: 0.10)
+                        RadialGradient(
+                            colors: [Color(red: 1.0, green: 0.6, blue: 0.1).opacity(0.06), Color.clear],
+                            center: .topTrailing,
+                            startRadius: 20,
+                            endRadius: 200
+                        )
+                    }
+                )
             )
         }
     }
