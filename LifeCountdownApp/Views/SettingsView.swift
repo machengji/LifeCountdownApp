@@ -9,6 +9,25 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section(
+                    header: Text("全能签 / 侧载小组件必看提示"),
+                    footer: Text("由于第三方签名工具（如全能签、爱思助手）会隔离主 App 与小组件沙盒，您在桌面【长按小组件 → 点击编辑小组件】，直接填入相伴日期（如 2023-05-20）即可 100% 立即生效！")
+                ) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "hand.tap.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.pink)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("支持桌面直接长按编辑小组件")
+                                .font(.system(size: 14, weight: .bold))
+                            Text("长按桌面小组件 → 编辑小组件 → 填入相伴日期")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+                
                 Section(header: Text("基础生命档案")) {
                     DatePicker(
                         "出生日期",
@@ -27,7 +46,7 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section(header: Text("相伴时光与纪念日"), footer: Text("修改日期后将实时同步至桌面小组件。若未及时生效，可点击下方刷新按钮。")) {
+                Section(header: Text("相伴时光与陪伴倒计时"), footer: Text("修改日期后将同步至小组件；若使用全能签安装，也可直接在桌面长按小组件点「编辑」填入日期。")) {
                     Toggle("开启在一起纪念日", isOn: $settings.isTogetherEnabled)
                     
                     if settings.isTogetherEnabled {
@@ -73,14 +92,15 @@ struct SettingsView: View {
                     .padding(.vertical, 4)
                 }
                 
-                Section(header: Text("桌面与锁屏小组件"), footer: Text("修改日期或目标后，系统会自动更新小组件。若未及时刷新，可点击上方按钮手动同步。")) {
+                Section(header: Text("桌面与锁屏小组件")) {
                     Button(action: {
-                        settings.notifyWidgetReload()
+                        settings.persistAll()
                         showReloadSuccessAlert = true
                     }) {
                         HStack {
                             Image(systemName: "arrow.triangle.2.circlepath")
                             Text("立即同步并刷新全部小组件")
+                                .fontWeight(.semibold)
                         }
                     }
                     
@@ -89,7 +109,7 @@ struct SettingsView: View {
                     }) {
                         HStack {
                             Image(systemName: "questionmark.circle")
-                            Text("小组件使用指南与问题排查")
+                            Text("小组件设置指南（全能签/侧载必读）")
                                 .foregroundColor(.orange)
                         }
                     }
@@ -99,7 +119,7 @@ struct SettingsView: View {
                     HStack {
                         Text("版本号")
                         Spacer()
-                        Text("1.0.7 (相伴天数深度校准与直传)")
+                        Text("1.0.8 (星曜高定 & 桌面长按直接编辑版)")
                             .foregroundColor(.secondary)
                     }
                     HStack {
@@ -118,7 +138,7 @@ struct SettingsView: View {
             .alert("小组件同步指令已发出", isPresented: $showReloadSuccessAlert) {
                 Button("确定", role: .cancel) { }
             } message: {
-                Text("桌面及锁屏小组件的时间轴已请求 WidgetCenter 重新装载。")
+                Text("已请求刷新桌面小组件。若您使用全能签签名导致沙盒隔离，请在桌面【长按小组件 → 编辑小组件】直接填入相伴日期，100% 立即生效！")
             }
             .sheet(isPresented: $showHelpSheet) {
                 WidgetTroubleshootingView()
@@ -136,29 +156,29 @@ struct WidgetTroubleshootingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("小组件使用小技巧")
+                        Text("小组件设置指南")
                             .font(.system(size: 18, weight: .bold))
-                        Text("全新升级的紧凑版小组件不仅支持人生倒计时，还融合了「在一起已经多少天」的甜蜜相伴记录！")
+                        Text("全新 1.0.8 版本专门针对全能签、爱思助手等重签名工具内置了「桌面长按直接编辑」引擎！")
                             .font(.system(size: 13))
                             .foregroundColor(.secondary)
                     }
                     
                     guideCard(
                         step: "1",
-                        title: "选择更紧凑的中号小组件 (推荐)",
-                        desc: "如果您觉得大号小组件占了半个屏幕，您可以长按桌面选择【中号小组件 (2x4)】，高度只有大号的一半，左侧是人生环形倒计时，右侧是恋爱相伴天数，极致紧凑、精致耐看！"
+                        title: "桌面长按小组件 → 编辑小组件 (最稳妥)",
+                        desc: "在手机桌面上直接长按本小组件，点击弹出的【编辑小组件】，在「相伴起始日」一栏直接输入日期（例如 2023-05-20），无需跨沙盒即可 100% 精准显示相伴天数、周年倒计时与余生陪伴倒计时！"
                     )
                     
                     guideCard(
                         step: "2",
-                        title: "大号小组件已全面消灭空白留白",
-                        desc: "新版大号小组件已重构为高密度紧凑矩阵，中部饱满融入了「在一起天数」卡片与 288 个点阵人生矩阵，排布紧凑有力，绝不再留多余空白！"
+                        title: "全新星曜流光双核大组件",
+                        desc: "顶部为浪漫玫瑰流光【相伴正计时 + 周年/余生双陪伴倒计时】，中部为【人生余生发光圆环 + 24阶流光生命晶格条】，下部为【今年/本月/今日三联立体进度方卡】，视觉层次分明，绝无换行与留白。"
                     )
                     
                     guideCard(
                         step: "3",
-                        title: "修改在一起日期后记得点刷新",
-                        desc: "在设置里更改了「在一起起始日」后，点击「立即同步并刷新全部小组件」，桌面上的天数就会同步变更。"
+                        title: "支持多种日期输入格式",
+                        desc: "在编辑小组件时，无论是输入 2023-05-20、2023.05.20、2023/05/20 还是 20230520，系统均能自动智能识别并精确到自然日零点计算。"
                     )
                 }
                 .padding()

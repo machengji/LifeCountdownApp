@@ -1,5 +1,24 @@
 import WidgetKit
 import SwiftUI
+import AppIntents
+
+/// 桌面小组件原生长按编辑配置意图（支持全能签/侧载环境下免跨沙盒直接在桌面长按设置）
+struct LifeWidgetConfigurationIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource = "人生与相伴倒计时设置"
+    static var description = IntentDescription("长按桌面小组件选择「编辑小组件」，可直接输入相伴日期与出生日期。")
+
+    @Parameter(title: "伴侣称呼", default: "TA")
+    var partnerName: String
+
+    @Parameter(title: "相伴起始日 (如 2023-05-20)", default: "")
+    var togetherDateText: String
+
+    @Parameter(title: "出生日期 (如 2000-01-01)", default: "")
+    var birthDateText: String
+
+    @Parameter(title: "目标寿命 (岁)", default: 80)
+    var targetAge: Int
+}
 
 /// 小组件数据实体条目
 struct LifeWidgetEntry: TimelineEntry {
@@ -8,103 +27,135 @@ struct LifeWidgetEntry: TimelineEntry {
     let quote: PhilosophyQuote
 }
 
-/// 小组件时间轴提供者
-struct LifeTimelineProvider: TimelineProvider {
+/// 小组件时间轴提供者 (支持 AppIntent 桌面直接编辑 + 主 App 共享双引擎)
+struct LifeTimelineProvider: AppIntentTimelineProvider {
     
     func placeholder(in context: Context) -> LifeWidgetEntry {
-        // 使用当前真实时间配置计算，绝不使用硬编码的 520 天假数据
-        return currentEntry(for: Date())
+        let defaultIntent = LifeWidgetConfigurationIntent()
+        return buildEntry(for: Date(), configuration: defaultIntent)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (LifeWidgetEntry) -> Void) {
-        let entry = currentEntry(for: Date())
-        completion(entry)
+    func snapshot(for configuration: LifeWidgetConfigurationIntent, in context: Context) async -> LifeWidgetEntry {
+        return buildEntry(for: Date(), configuration: configuration)
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<LifeWidgetEntry>) -> Void) {
+    func timeline(for configuration: LifeWidgetConfigurationIntent, in context: Context) async -> Timeline<LifeWidgetEntry> {
         let currentDate = Date()
-        let entry = currentEntry(for: currentDate)
+        let entry = buildEntry(for: currentDate, configuration: configuration)
         
-        // 每半小时刷新一次，保证紧密跟踪
+        // 每 30 分钟刷新一次，确保今日剩余小时与天数实时准确
         let nextUpdateDate = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate) ?? currentDate.addingTimeInterval(1800)
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdateDate))
-        completion(timeline)
+        return Timeline(entries: [entry], policy: .after(nextUpdateDate))
     }
     
-    private func currentEntry(for date: Date) -> LifeWidgetEntry {
-        // 第一优先级：直接从共享磁盘配置文件加载 (最准确，无延迟)
-        if let config = AppSettings.loadSharedConfigFromFile() {
-            let birthDate = Date(timeIntervalSince1970: config.birthDateTimestamp)
-            let togetherDate: Date? = {
-                if let ts = config.togetherDateTimestamp, ts > 0 {
-                    return Date(timeIntervalSince1970: ts)
-                }
-                return nil
-            }()
-            
-            let snapshot = LifeCalculator.calculate(
-                birthDate: birthDate,
-                targetAge: config.targetAge,
-                isTogetherEnabled: config.isTogetherEnabled,
-                togetherDate: togetherDate,
-                partnerName: config.partnerName,
-                asOf: date
-            )
-            let quote = PhilosophyQuoteRepository.todayQuote(for: date)
-            return LifeWidgetEntry(date: date, snapshot: snapshot, quote: quote)
-        }
+    private func buildEntry(for date: Date, configuration: LifeWidgetConfigurationIntent) -> LifeWidgetEntry {
+        // 1. 读取主 App 共享配置（若 AppGroup 通道已打通）
+        let sharedConfig = AppSettings.loadSharedConfigFromFile()
         
-        // 第二优先级：从候选 AppGroups 及 Standard UserDefaults 读取
-        var savedBirth: Double = 0
-        var savedTargetAge: Int = 0
-        var savedTogetherEnabled: Bool? = nil
-        var savedTogether: Double = 0
-        var savedPartner: String? = nil
+        var udBirth: Double = 0
+        var udTargetAge: Int = 0
+        var udTogetherEnabled: Bool? = nil
+        var udTogetherTs: Double = 0
+        var udPartner: String? = nil
         
         for group in AppSettings.appGroupCandidates {
             if let ud = UserDefaults(suiteName: group) {
-                if savedBirth == 0 { savedBirth = ud.double(forKey: AppSettings.Keys.birthDate) }
-                if savedTargetAge == 0 { savedTargetAge = ud.integer(forKey: AppSettings.Keys.targetAge) }
-                if savedTogetherEnabled == nil && ud.object(forKey: AppSettings.Keys.isTogetherEnabled) != nil {
-                    savedTogetherEnabled = ud.bool(forKey: AppSettings.Keys.isTogetherEnabled)
+                if udBirth == 0 { udBirth = ud.double(forKey: AppSettings.Keys.birthDate) }
+                if udTargetAge == 0 { udTargetAge = ud.integer(forKey: AppSettings.Keys.targetAge) }
+                if udTogetherEnabled == nil && ud.object(forKey: AppSettings.Keys.isTogetherEnabled) != nil {
+                    udTogetherEnabled = ud.bool(forKey: AppSettings.Keys.isTogetherEnabled)
                 }
-                if savedTogether == 0 { savedTogether = ud.double(forKey: AppSettings.Keys.togetherDate) }
-                if savedPartner == nil { savedPartner = ud.string(forKey: AppSettings.Keys.partnerName) }
+                if udTogetherTs == 0 { udTogetherTs = ud.double(forKey: AppSettings.Keys.togetherDate) }
+                if udPartner == nil { udPartner = ud.string(forKey: AppSettings.Keys.partnerName) }
             }
         }
         
         let standardDefaults = UserDefaults.standard
-        if savedBirth == 0 { savedBirth = standardDefaults.double(forKey: AppSettings.Keys.birthDate) }
-        if savedTargetAge == 0 { savedTargetAge = standardDefaults.integer(forKey: AppSettings.Keys.targetAge) }
-        if savedTogetherEnabled == nil && standardDefaults.object(forKey: AppSettings.Keys.isTogetherEnabled) != nil {
-            savedTogetherEnabled = standardDefaults.bool(forKey: AppSettings.Keys.isTogetherEnabled)
+        if udBirth == 0 { udBirth = standardDefaults.double(forKey: AppSettings.Keys.birthDate) }
+        if udTargetAge == 0 { udTargetAge = standardDefaults.integer(forKey: AppSettings.Keys.targetAge) }
+        if udTogetherEnabled == nil && standardDefaults.object(forKey: AppSettings.Keys.isTogetherEnabled) != nil {
+            udTogetherEnabled = standardDefaults.bool(forKey: AppSettings.Keys.isTogetherEnabled)
         }
-        if savedTogether == 0 { savedTogether = standardDefaults.double(forKey: AppSettings.Keys.togetherDate) }
-        if savedPartner == nil { savedPartner = standardDefaults.string(forKey: AppSettings.Keys.partnerName) }
+        if udTogetherTs == 0 { udTogetherTs = standardDefaults.double(forKey: AppSettings.Keys.togetherDate) }
+        if udPartner == nil { udPartner = standardDefaults.string(forKey: AppSettings.Keys.partnerName) }
         
-        let birthDate: Date
-        if savedBirth > 0 {
-            birthDate = Date(timeIntervalSince1970: savedBirth)
-        } else {
-            var components = DateComponents()
-            components.year = 2000
-            components.month = 1
-            components.day = 1
-            birthDate = Calendar.current.date(from: components) ?? date
-        }
+        // 2. 决定出生日期：优先使用小组件长按编辑填入的日期 -> 其次主 App 共享文件 -> 其次 UserDefaults -> 初始值 2000-01-01
+        let resolvedBirthDate: Date = {
+            if let customBirth = LifeCalculator.parseFlexibleDate(configuration.birthDateText) {
+                return customBirth
+            }
+            if let cfg = sharedConfig, cfg.birthDateTimestamp > 0 {
+                return Date(timeIntervalSince1970: cfg.birthDateTimestamp)
+            }
+            if udBirth > 0 {
+                return Date(timeIntervalSince1970: udBirth)
+            }
+            var comp = DateComponents()
+            comp.year = 2000
+            comp.month = 1
+            comp.day = 1
+            return Calendar.current.date(from: comp) ?? date
+        }()
         
-        let targetAge = savedTargetAge > 0 ? savedTargetAge : 80
-        let isTogetherEnabled = savedTogetherEnabled ?? true
-        // 严格遵循业务规则：未配置就是 nil，绝不擅自造假
-        let togetherDate: Date? = savedTogether > 0 ? Date(timeIntervalSince1970: savedTogether) : nil
-        let partnerName = savedPartner ?? "TA"
+        // 3. 决定目标寿命
+        let resolvedTargetAge: Int = {
+            if (40...120).contains(configuration.targetAge) && configuration.targetAge != 80 {
+                return configuration.targetAge
+            }
+            if let cfg = sharedConfig, (40...120).contains(cfg.targetAge) {
+                return cfg.targetAge
+            }
+            if (40...120).contains(udTargetAge) {
+                return udTargetAge
+            }
+            return max(40, min(120, configuration.targetAge))
+        }()
+        
+        // 4. 决定相伴起始日（严禁任何假数据兜底：优先使用小组件长按编辑填入的日期 -> 其次主 App 共享数据 -> 未填则为 nil）
+        let resolvedTogetherDate: Date? = {
+            if let customTogether = LifeCalculator.parseFlexibleDate(configuration.togetherDateText) {
+                return customTogether
+            }
+            if let cfg = sharedConfig, let ts = cfg.togetherDateTimestamp, ts > 0 {
+                return Date(timeIntervalSince1970: ts)
+            }
+            if udTogetherTs > 0 {
+                return Date(timeIntervalSince1970: udTogetherTs)
+            }
+            return nil
+        }()
+        
+        let resolvedTogetherEnabled: Bool = {
+            if resolvedTogetherDate != nil {
+                return true
+            }
+            if let cfg = sharedConfig {
+                return cfg.isTogetherEnabled
+            }
+            return udTogetherEnabled ?? true
+        }()
+        
+        // 5. 决定伴侣称呼
+        let trimmedIntentPartner = configuration.partnerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedPartnerName: String = {
+            if !trimmedIntentPartner.isEmpty && trimmedIntentPartner != "TA" {
+                return trimmedIntentPartner
+            }
+            if let cfg = sharedConfig, !cfg.partnerName.isEmpty {
+                return cfg.partnerName
+            }
+            if let up = udPartner, !up.isEmpty {
+                return up
+            }
+            return trimmedIntentPartner.isEmpty ? "TA" : trimmedIntentPartner
+        }()
         
         let snapshot = LifeCalculator.calculate(
-            birthDate: birthDate,
-            targetAge: targetAge,
-            isTogetherEnabled: isTogetherEnabled,
-            togetherDate: togetherDate,
-            partnerName: partnerName,
+            birthDate: resolvedBirthDate,
+            targetAge: resolvedTargetAge,
+            isTogetherEnabled: resolvedTogetherEnabled,
+            togetherDate: resolvedTogetherDate,
+            partnerName: resolvedPartnerName,
             asOf: date
         )
         let quote = PhilosophyQuoteRepository.todayQuote(for: date)
@@ -139,34 +190,40 @@ struct LifeWidgetEntryView: View {
 
 extension View {
     func widgetContainerBackground() -> some View {
-        if #available(iOS 17.0, *) {
-            return AnyView(
-                self.containerBackground(for: .widget) {
-                    ZStack {
-                        Color(red: 0.08, green: 0.08, blue: 0.10)
-                        RadialGradient(
-                            colors: [Color(red: 1.0, green: 0.6, blue: 0.1).opacity(0.06), Color.clear],
-                            center: .topTrailing,
-                            startRadius: 20,
-                            endRadius: 200
-                        )
-                    }
-                }
-            )
-        } else {
-            return AnyView(
-                self.background(
-                    ZStack {
-                        Color(red: 0.08, green: 0.08, blue: 0.10)
-                        RadialGradient(
-                            colors: [Color(red: 1.0, green: 0.6, blue: 0.1).opacity(0.06), Color.clear],
-                            center: .topTrailing,
-                            startRadius: 20,
-                            endRadius: 200
-                        )
-                    }
+        self.containerBackground(for: .widget) {
+            ZStack {
+                // 深空星曜底色渐变
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.05, green: 0.06, blue: 0.10),
+                        Color(red: 0.09, green: 0.10, blue: 0.16)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
                 )
-            )
+                
+                // 右上角浪漫玫瑰星云微光晕染
+                RadialGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.32, blue: 0.55).opacity(0.14),
+                        Color.clear
+                    ],
+                    center: .topTrailing,
+                    startRadius: 10,
+                    endRadius: 220
+                )
+                
+                // 左下角琥珀流光微光晕染
+                RadialGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.65, blue: 0.18).opacity(0.10),
+                        Color.clear
+                    ],
+                    center: .bottomLeading,
+                    startRadius: 15,
+                    endRadius: 200
+                )
+            }
         }
     }
 }
@@ -176,11 +233,15 @@ struct LifeCountdownWidget: Widget {
     let kind: String = "LifeCountdownWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: LifeTimelineProvider()) { entry in
+        AppIntentConfiguration(
+            kind: kind,
+            intent: LifeWidgetConfigurationIntent.self,
+            provider: LifeTimelineProvider()
+        ) { entry in
             LifeWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("人生倒计时")
-        .description("向死而生，感知生命流逝与相伴时光。")
+        .configurationDisplayName("人生与相伴倒计时")
+        .description("向死而生，珍视相伴。长按小组件点击「编辑」可直接设定相伴纪念日与出生日期。")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

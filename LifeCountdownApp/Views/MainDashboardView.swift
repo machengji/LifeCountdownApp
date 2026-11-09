@@ -138,40 +138,68 @@ struct MainDashboardView: View {
         )
     }
     
-    // MARK: - 相伴时光卡片
+    // MARK: - 相伴时光与陪伴倒计时卡片
     private func togetherCard(days: Int) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(colors: [Color.pink.opacity(0.2), Color.red.opacity(0.12)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 48, height: 48)
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(.pink)
-            }
-            
-            VStack(alignment: .leading, spacing: 3) {
-                Text("和 \(snapshot.partnerName) 已经在一起")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.secondary)
-                
-                HStack(alignment: .lastTextBaseline, spacing: 3) {
-                    Text("\(days)")
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
+        VStack(spacing: 12) {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(colors: [Color.pink.opacity(0.2), Color.red.opacity(0.12)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 48, height: 48)
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 22))
                         .foregroundColor(.pink)
-                    Text("天")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.secondary)
                 }
                 
-                if let rem = snapshot.togetherRemainingDays {
-                    Text("余生还有 \(rem) 天继续携手同行")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary.opacity(0.9))
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        Text("和 \(snapshot.partnerName) 已经在一起")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        if let dateStr = snapshot.togetherDateFormatted {
+                            Text("始于 \(dateStr)")
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    HStack(alignment: .lastTextBaseline, spacing: 3) {
+                        Text("\(days)")
+                            .font(.system(size: 28, weight: .heavy, design: .rounded))
+                            .foregroundColor(.pink)
+                        Text("天")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.pink.opacity(0.8))
+                    }
                 }
             }
             
-            Spacer()
+            Divider()
+            
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("距 \(snapshot.nextAnniversaryYear ?? 1) 周年纪念倒计时")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                    Text("剩 \(snapshot.daysUntilNextAnniversary ?? 0) 天")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(.pink)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Divider().frame(height: 28)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("余生陪伴倒计时")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                    Text("\(snapshot.togetherRemainingDays ?? snapshot.remainingLifeDays) 天")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(.orange)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .padding(16)
         .background(
