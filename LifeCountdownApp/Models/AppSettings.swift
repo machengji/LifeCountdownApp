@@ -86,9 +86,9 @@ final class AppSettings: ObservableObject {
                 self.togetherDate = Date(timeIntervalSince1970: ts)
             } else {
                 var comp = DateComponents()
-                comp.year = 2024
-                comp.month = 5
-                comp.day = 20
+                comp.year = 2025
+                comp.month = 7
+                comp.day = 6
                 self.togetherDate = Calendar.current.date(from: comp) ?? Date()
             }
             self.partnerName = config.partnerName
@@ -148,9 +148,9 @@ final class AppSettings: ObservableObject {
             self.togetherDate = Date(timeIntervalSince1970: loadedTogetherTs)
         } else {
             var comp = DateComponents()
-            comp.year = 2024
-            comp.month = 5
-            comp.day = 20
+            comp.year = 2025
+            comp.month = 7
+            comp.day = 6
             self.togetherDate = Calendar.current.date(from: comp) ?? Date()
         }
         

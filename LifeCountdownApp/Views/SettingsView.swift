@@ -119,7 +119,7 @@ struct SettingsView: View {
                     HStack {
                         Text("版本号")
                         Spacer()
-                        Text("1.0.8 (星曜高定 & 桌面长按直接编辑版)")
+                        Text("1.0.9 (全能签兼容与无遮罩清晰版)")
                             .foregroundColor(.secondary)
                     }
                     HStack {

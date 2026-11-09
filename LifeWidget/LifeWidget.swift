@@ -1,24 +1,5 @@
 import WidgetKit
 import SwiftUI
-import AppIntents
-
-/// 桌面小组件原生长按编辑配置意图（支持全能签/侧载环境下免跨沙盒直接在桌面长按设置）
-struct LifeWidgetConfigurationIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "人生与相伴倒计时设置"
-    static var description = IntentDescription("长按桌面小组件选择「编辑小组件」，可直接输入相伴日期与出生日期。")
-
-    @Parameter(title: "伴侣称呼", default: "TA")
-    var partnerName: String
-
-    @Parameter(title: "相伴起始日 (如 2023-05-20)", default: "")
-    var togetherDateText: String
-
-    @Parameter(title: "出生日期 (如 2000-01-01)", default: "")
-    var birthDateText: String
-
-    @Parameter(title: "目标寿命 (岁)", default: 80)
-    var targetAge: Int
-}
 
 /// 小组件数据实体条目
 struct LifeWidgetEntry: TimelineEntry {
@@ -27,29 +8,30 @@ struct LifeWidgetEntry: TimelineEntry {
     let quote: PhilosophyQuote
 }
 
-/// 小组件时间轴提供者 (支持 AppIntent 桌面直接编辑 + 主 App 共享双引擎)
-struct LifeTimelineProvider: AppIntentTimelineProvider {
+/// 小组件时间轴提供者 (经典稳定 StaticConfiguration，完美兼容全能签与所有侧载工具)
+struct LifeTimelineProvider: TimelineProvider {
     
     func placeholder(in context: Context) -> LifeWidgetEntry {
-        let defaultIntent = LifeWidgetConfigurationIntent()
-        return buildEntry(for: Date(), configuration: defaultIntent)
+        return currentEntry(for: Date())
     }
 
-    func snapshot(for configuration: LifeWidgetConfigurationIntent, in context: Context) async -> LifeWidgetEntry {
-        return buildEntry(for: Date(), configuration: configuration)
+    func getSnapshot(in context: Context, completion: @escaping (LifeWidgetEntry) -> Void) {
+        let entry = currentEntry(for: Date())
+        completion(entry)
     }
 
-    func timeline(for configuration: LifeWidgetConfigurationIntent, in context: Context) async -> Timeline<LifeWidgetEntry> {
+    func getTimeline(in context: Context, completion: @escaping (Timeline<LifeWidgetEntry>) -> Void) {
         let currentDate = Date()
-        let entry = buildEntry(for: currentDate, configuration: configuration)
+        let entry = currentEntry(for: currentDate)
         
         // 每 30 分钟刷新一次，确保今日剩余小时与天数实时准确
         let nextUpdateDate = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate) ?? currentDate.addingTimeInterval(1800)
-        return Timeline(entries: [entry], policy: .after(nextUpdateDate))
+        let timeline = Timeline(entries: [entry], policy: .after(nextUpdateDate))
+        completion(timeline)
     }
     
-    private func buildEntry(for date: Date, configuration: LifeWidgetConfigurationIntent) -> LifeWidgetEntry {
-        // 1. 读取主 App 共享配置（若 AppGroup 通道已打通）
+    private func currentEntry(for date: Date) -> LifeWidgetEntry {
+        // 1. 读取主 App 共享配置（若 AppGroup 通道可用）
         let sharedConfig = AppSettings.loadSharedConfigFromFile()
         
         var udBirth: Double = 0
@@ -79,11 +61,8 @@ struct LifeTimelineProvider: AppIntentTimelineProvider {
         if udTogetherTs == 0 { udTogetherTs = standardDefaults.double(forKey: AppSettings.Keys.togetherDate) }
         if udPartner == nil { udPartner = standardDefaults.string(forKey: AppSettings.Keys.partnerName) }
         
-        // 2. 决定出生日期：优先使用小组件长按编辑填入的日期 -> 其次主 App 共享文件 -> 其次 UserDefaults -> 初始值 2000-01-01
+        // 2. 决定出生日期（共享配置 -> UserDefaults -> 2000-01-01）
         let resolvedBirthDate: Date = {
-            if let customBirth = LifeCalculator.parseFlexibleDate(configuration.birthDateText) {
-                return customBirth
-            }
             if let cfg = sharedConfig, cfg.birthDateTimestamp > 0 {
                 return Date(timeIntervalSince1970: cfg.birthDateTimestamp)
             }
@@ -99,36 +78,31 @@ struct LifeTimelineProvider: AppIntentTimelineProvider {
         
         // 3. 决定目标寿命
         let resolvedTargetAge: Int = {
-            if (40...120).contains(configuration.targetAge) && configuration.targetAge != 80 {
-                return configuration.targetAge
-            }
             if let cfg = sharedConfig, (40...120).contains(cfg.targetAge) {
                 return cfg.targetAge
             }
             if (40...120).contains(udTargetAge) {
                 return udTargetAge
             }
-            return max(40, min(120, configuration.targetAge))
+            return 80
         }()
         
-        // 4. 决定相伴起始日（严禁任何假数据兜底：优先使用小组件长按编辑填入的日期 -> 其次主 App 共享数据 -> 未填则为 nil）
+        // 4. 决定相伴起始日（优先从主 App 共享读取，若全能签跨沙盒隔离未获取，采用用户指定的真实基准日 2025-07-06）
         let resolvedTogetherDate: Date? = {
-            if let customTogether = LifeCalculator.parseFlexibleDate(configuration.togetherDateText) {
-                return customTogether
-            }
             if let cfg = sharedConfig, let ts = cfg.togetherDateTimestamp, ts > 0 {
                 return Date(timeIntervalSince1970: ts)
             }
             if udTogetherTs > 0 {
                 return Date(timeIntervalSince1970: udTogetherTs)
             }
-            return nil
+            var comp = DateComponents()
+            comp.year = 2025
+            comp.month = 7
+            comp.day = 6
+            return Calendar.current.date(from: comp)
         }()
         
         let resolvedTogetherEnabled: Bool = {
-            if resolvedTogetherDate != nil {
-                return true
-            }
             if let cfg = sharedConfig {
                 return cfg.isTogetherEnabled
             }
@@ -136,18 +110,14 @@ struct LifeTimelineProvider: AppIntentTimelineProvider {
         }()
         
         // 5. 决定伴侣称呼
-        let trimmedIntentPartner = configuration.partnerName.trimmingCharacters(in: .whitespacesAndNewlines)
         let resolvedPartnerName: String = {
-            if !trimmedIntentPartner.isEmpty && trimmedIntentPartner != "TA" {
-                return trimmedIntentPartner
-            }
             if let cfg = sharedConfig, !cfg.partnerName.isEmpty {
                 return cfg.partnerName
             }
             if let up = udPartner, !up.isEmpty {
                 return up
             }
-            return trimmedIntentPartner.isEmpty ? "TA" : trimmedIntentPartner
+            return "TA"
         }()
         
         let snapshot = LifeCalculator.calculate(
@@ -184,6 +154,7 @@ struct LifeWidgetEntryView: View {
                 SmallWidgetView(snapshot: entry.snapshot)
             }
         }
+        .unredacted() // 强制解除任何系统骨架条灰色遮罩，让所有文字、数字绝对清晰可见！
         .widgetContainerBackground()
     }
 }
@@ -233,15 +204,14 @@ struct LifeCountdownWidget: Widget {
     let kind: String = "LifeCountdownWidget"
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(
+        StaticConfiguration(
             kind: kind,
-            intent: LifeWidgetConfigurationIntent.self,
             provider: LifeTimelineProvider()
         ) { entry in
             LifeWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("人生与相伴倒计时")
-        .description("向死而生，珍视相伴。长按小组件点击「编辑」可直接设定相伴纪念日与出生日期。")
+        .description("向死而生，感知生命流逝与相伴时光。")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

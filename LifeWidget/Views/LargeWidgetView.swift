@@ -178,7 +178,7 @@ struct LargeWidgetView: View {
                             .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.white.opacity(0.92))
                         Spacer()
-                        Text("支持桌面直接设置")
+                        Text("待设定")
                             .font(.system(size: 8.5, weight: .semibold))
                             .foregroundColor(Color(red: 1.0, green: 0.45, blue: 0.65))
                             .padding(.horizontal, 6)
@@ -186,12 +186,12 @@ struct LargeWidgetView: View {
                             .background(Capsule().fill(Color(red: 1.0, green: 0.38, blue: 0.58).opacity(0.18)))
                     }
                     
-                    Text("长按小组件 → 点击「编辑小组件」")
+                    Text("点击小组件打开 App 设定相伴日")
                         .font(.system(size: 12.5, weight: .heavy, design: .rounded))
                         .foregroundColor(.white)
                         .lineLimit(1)
                     
-                    Text("填入相伴起始日 (如 2023-05-20) 即可开启正计时与周年倒计时")
+                    Text("或直接告诉我您的相伴年月日，为您编译专属版")
                         .font(.system(size: 9))
                         .foregroundColor(.white.opacity(0.60))
                         .lineLimit(1)

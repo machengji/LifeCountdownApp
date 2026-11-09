@@ -100,7 +100,7 @@ struct MediumWidgetView: View {
                                 .font(.system(size: 10.5, weight: .bold))
                                 .foregroundColor(.white.opacity(0.9))
                         }
-                        Text("长按小组件 → 点击「编辑」填入相伴起始日")
+                        Text("点击小组件进入 App 设定相伴起始日")
                             .font(.system(size: 9.5, weight: .semibold))
                             .foregroundColor(Color(red: 1.0, green: 0.68, blue: 0.25))
                             .lineLimit(1)
