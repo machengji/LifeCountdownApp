@@ -1,22 +1,21 @@
 import SwiftUI
 import WidgetKit
 
-/// 桌面大号小组件 (SystemLarge 4x4) · 星曜流光双核高定版
-/// 架构：
-/// 1. 顶部：浪漫相伴正计时 + 周年/余生双陪伴倒计时主卡（支持长按桌面直接编辑）
-/// 2. 中部：人生余生倒计时环形仪表盘 + 24阶流光生命胶片晶格
-/// 3. 下部：今年 / 本月 / 今日 三联立体进度方卡（上下分层，杜绝折行）
-/// 4. 底栏：无截断精炼哲思短句
+/// 桌面大号小组件 (SystemLarge 4x4) · 曜石星轨·旗舰高定版
+/// 针对用户反馈深度重构：
+/// 1. 彻底消除边缘大面积松散留白与空隙，卡片有机铺展，饱满紧凑；
+/// 2. 四层黄金比例：顶部浪漫相伴双核主卡 + 中部余生仪表与28阶生命晶格 + 下部三联立体进度方卡 + 底栏极简短箴言；
+/// 3. 全局 .unredacted()，彻底杜绝任何骨架屏灰色长条遮罩。
 struct LargeWidgetView: View {
     let snapshot: LifeProgressSnapshot
     let quote: PhilosophyQuote
     
     var body: some View {
-        VStack(spacing: 9) {
-            // MARK: - 1. 顶部：浪漫相伴 & 陪伴倒计时主视觉卡
+        VStack(spacing: 7) {
+            // MARK: - 1. 顶部：浪漫相伴正计时 + 周年/余生双陪伴倒计时主视觉卡
             loveHeroBanner
             
-            // MARK: - 2. 中部：人生余生倒计时 & 24阶流光生命晶格卡
+            // MARK: - 2. 中部：人生余生倒计时 & 28阶流光生命晶格卡
             lifeDashboardCard
             
             // MARK: - 3. 中下部：三联立体时光进度方卡（今年 / 本月 / 今日）
@@ -25,8 +24,9 @@ struct LargeWidgetView: View {
             // MARK: - 4. 底部：精炼无截断生命箴言
             quoteFooterBar
         }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .unredacted()
         .widgetURL(URL(string: "lifecountdown://home"))
     }
     
@@ -36,43 +36,43 @@ struct LargeWidgetView: View {
         if let togetherDays = snapshot.togetherDays {
             HStack(spacing: 10) {
                 // 左侧：已经在一起天数（正计时）
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
                         Image(systemName: "heart.fill")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.system(size: 10.5, weight: .bold))
                             .foregroundColor(Color(red: 1.0, green: 0.36, blue: 0.58))
                         Text("与 \(snapshot.partnerName) 相伴")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 11.5, weight: .bold))
                             .foregroundColor(.white.opacity(0.92))
                             .lineLimit(1)
                     }
                     
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text("\(togetherDays)")
                             .font(.system(size: 28, weight: .heavy, design: .rounded))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [.white, Color(red: 1.0, green: 0.78, blue: 0.86)],
+                                    colors: [.white, Color(red: 1.0, green: 0.82, blue: 0.90)],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
                             )
                             .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                            .minimumScaleFactor(0.75)
                         Text("天")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 11.5, weight: .bold))
                             .foregroundColor(Color(red: 1.0, green: 0.42, blue: 0.62))
                     }
                     
                     if let dateStr = snapshot.togetherDateFormatted {
                         Text("始于 \(dateStr)")
-                            .font(.system(size: 9, weight: .medium, design: .monospaced))
+                            .font(.system(size: 8.5, weight: .medium, design: .monospaced))
                             .foregroundColor(.white.opacity(0.55))
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // 中间渐变分割线
+                // 中间微光分割线
                 Rectangle()
                     .fill(
                         LinearGradient(
@@ -81,12 +81,12 @@ struct LargeWidgetView: View {
                             endPoint: .bottom
                         )
                     )
-                    .frame(width: 1, height: 58)
+                    .frame(width: 1, height: 54)
                 
-                // 右侧：陪伴倒计时双指标（周年纪念倒计时 + 余生共度倒计时）
-                VStack(alignment: .leading, spacing: 7) {
-                    // 1. 下一个周年纪念倒计时
-                    VStack(alignment: .leading, spacing: 3) {
+                // 右侧：双陪伴倒计时（周年纪念倒计时 + 余生共度倒计时）
+                VStack(alignment: .leading, spacing: 6) {
+                    // 1. 周年纪念倒计时
+                    VStack(alignment: .leading, spacing: 2.5) {
                         HStack {
                             Text("\(snapshot.nextAnniversaryYear ?? 1)周年倒计时")
                                 .font(.system(size: 9.5, weight: .medium))
@@ -100,12 +100,12 @@ struct LargeWidgetView: View {
                         progressCapsule(
                             ratio: snapshot.anniversaryProgressRatio ?? 0.5,
                             colors: [Color(red: 1.0, green: 0.35, blue: 0.58), Color(red: 0.95, green: 0.55, blue: 0.85)],
-                            height: 3.5
+                            height: 3.2
                         )
                     }
                     
                     // 2. 余生共度倒计时
-                    VStack(alignment: .leading, spacing: 3) {
+                    VStack(alignment: .leading, spacing: 2.5) {
                         HStack {
                             Text("余生陪伴倒计时")
                                 .font(.system(size: 9.5, weight: .medium))
@@ -119,16 +119,16 @@ struct LargeWidgetView: View {
                         progressCapsule(
                             ratio: max(0.05, 1.0 - snapshot.lifeProgressRatio),
                             colors: [Color(red: 1.0, green: 0.65, blue: 0.2), Color(red: 1.0, green: 0.38, blue: 0.55)],
-                            height: 3.5
+                            height: 3.2
                         )
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 8.5)
             .background(
-                RoundedRectangle(cornerRadius: 15)
+                RoundedRectangle(cornerRadius: 14)
                     .fill(
                         LinearGradient(
                             colors: [
@@ -140,23 +140,23 @@ struct LargeWidgetView: View {
                         )
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 15)
+                        RoundedRectangle(cornerRadius: 14)
                             .stroke(
                                 LinearGradient(
                                     colors: [
-                                        Color(red: 1.0, green: 0.42, blue: 0.62).opacity(0.45),
+                                        Color(red: 1.0, green: 0.42, blue: 0.62).opacity(0.40),
                                         Color.white.opacity(0.08)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
-                                lineWidth: 0.9
+                                lineWidth: 0.75
                             )
                     )
             )
         } else {
-            // 尚未设置相伴日期时的精致引导卡（不造假，清晰指引长按编辑）
-            HStack(spacing: 10) {
+            // 尚未设置相伴日期时的引导卡
+            HStack(spacing: 8) {
                 ZStack {
                     Circle()
                         .fill(
@@ -166,56 +166,55 @@ struct LargeWidgetView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 40, height: 40)
+                        .frame(width: 36, height: 36)
                     Image(systemName: "heart.text.square.fill")
-                        .font(.system(size: 20))
+                        .font(.system(size: 18))
                         .foregroundColor(Color(red: 1.0, green: 0.42, blue: 0.62))
                 }
                 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     HStack {
                         Text("相伴时光与陪伴倒计时")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 10.5, weight: .bold))
                             .foregroundColor(.white.opacity(0.92))
                         Spacer()
                         Text("待设定")
-                            .font(.system(size: 8.5, weight: .semibold))
+                            .font(.system(size: 8, weight: .semibold))
                             .foregroundColor(Color(red: 1.0, green: 0.45, blue: 0.65))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1.5)
                             .background(Capsule().fill(Color(red: 1.0, green: 0.38, blue: 0.58).opacity(0.18)))
                     }
                     
                     Text("点击小组件打开 App 设定相伴日")
-                        .font(.system(size: 12.5, weight: .heavy, design: .rounded))
+                        .font(.system(size: 11.5, weight: .heavy, design: .rounded))
                         .foregroundColor(.white)
                         .lineLimit(1)
                     
                     Text("或直接告诉我您的相伴年月日，为您编译专属版")
-                        .font(.system(size: 9))
+                        .font(.system(size: 8.5))
                         .foregroundColor(.white.opacity(0.60))
                         .lineLimit(1)
-                        .minimumScaleFactor(0.8)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 15)
+                RoundedRectangle(cornerRadius: 14)
                     .fill(Color.white.opacity(0.06))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color(red: 1.0, green: 0.42, blue: 0.62).opacity(0.35), lineWidth: 0.9)
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(Color(red: 1.0, green: 0.42, blue: 0.62).opacity(0.35), lineWidth: 0.75)
                     )
             )
         }
     }
     
-    // MARK: - 第二层：人生余生倒计时 + 24阶流光生命胶片晶格
+    // MARK: - 第二层：人生余生倒计时 + 28阶流光生命胶片晶格
     private var lifeDashboardCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
-                // 左侧发光进度圆环
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 11) {
+                // 左侧发光圆环仪表
                 ZStack {
                     Circle()
                         .stroke(Color.white.opacity(0.10), lineWidth: 5.5)
@@ -263,9 +262,9 @@ struct LargeWidgetView: View {
                             .lineLimit(1)
                     }
                     
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline, spacing: 3) {
                         Text("\(snapshot.remainingLifeDays)")
-                            .font(.system(size: 25, weight: .heavy, design: .rounded))
+                            .font(.system(size: 26, weight: .heavy, design: .rounded))
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [.white, Color(red: 1.0, green: 0.80, blue: 0.40)],
@@ -285,90 +284,99 @@ struct LargeWidgetView: View {
                 }
             }
             
-            // 24 阶流光生命胶片晶格条（取代原本沉闷密集的 336 灰点，清爽、科幻、秩序感拉满）
-            VStack(alignment: .leading, spacing: 4) {
-                let totalSegments = 24
+            // 28 阶流光生命胶片晶格条
+            VStack(alignment: .leading, spacing: 3.5) {
+                let totalSegments = 28
                 let activeIndex = min(totalSegments - 1, max(0, Int(snapshot.lifeProgressRatio * Double(totalSegments))))
                 
-                HStack(spacing: 3.5) {
+                HStack(spacing: 2.8) {
                     ForEach(0..<totalSegments, id: \.self) { idx in
                         let isPassed = idx < activeIndex
                         let isCurrent = idx == activeIndex
                         
-                        RoundedRectangle(cornerRadius: 2.2)
+                        RoundedRectangle(cornerRadius: 2)
                             .fill(segmentFill(index: idx, total: totalSegments, isPassed: isPassed, isCurrent: isCurrent))
                             .frame(height: 7)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 2.2)
-                                    .stroke(isCurrent ? Color.white.opacity(0.9) : Color.clear, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 2)
+                                    .stroke(isCurrent ? Color.white.opacity(0.9) : Color.clear, lineWidth: 0.9)
                             )
                     }
                 }
                 
                 HStack {
                     Text("生命流光轨迹 · 已历 \(snapshot.passedMonths) 月")
-                        .font(.system(size: 8.5, weight: .medium))
+                        .font(.system(size: 8, weight: .medium))
                         .foregroundColor(.white.opacity(0.48))
                     Spacer()
-                    Text("每格约代表 \(String(format: "%.1f", Double(snapshot.targetAge) / 24.0)) 年时光")
-                        .font(.system(size: 8.5, weight: .medium))
+                    Text("每格代表 \(String(format: "%.1f", Double(snapshot.targetAge) / Double(totalSegments))) 年")
+                        .font(.system(size: 8, weight: .medium))
                         .foregroundColor(.white.opacity(0.48))
                 }
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
+        .padding(.horizontal, 11)
+        .padding(.vertical, 8.5)
         .background(
-            RoundedRectangle(cornerRadius: 15)
+            RoundedRectangle(cornerRadius: 14)
                 .fill(Color.white.opacity(0.055))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 15)
+                    RoundedRectangle(cornerRadius: 14)
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    Color(red: 1.0, green: 0.68, blue: 0.22).opacity(0.35),
-                                    Color.white.opacity(0.06)
+                                    Color(red: 1.0, green: 0.68, blue: 0.20).opacity(0.28),
+                                    Color.white.opacity(0.08)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 0.8
+                            lineWidth: 0.75
                         )
                 )
         )
     }
     
-    private func segmentFill(index: Int, total: Int, isPassed: Bool, isCurrent: Bool) -> AnyShapeStyle {
+    /// 晶格背景着色逻辑
+    private func segmentFill(index: Int, total: Int, isPassed: Bool, isCurrent: Bool) -> some ShapeStyle {
         if isCurrent {
-            return AnyShapeStyle(Color(red: 1.0, green: 0.85, blue: 0.35))
+            return LinearGradient(
+                colors: [.white, Color(red: 1.0, green: 0.75, blue: 0.25)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
         } else if isPassed {
-            let progress = Double(index) / Double(max(1, total))
-            let r = 1.0
-            let g = 0.72 - progress * 0.30
-            let b = 0.22 + progress * 0.35
-            return AnyShapeStyle(Color(red: r, green: g, blue: b).opacity(0.88))
+            return LinearGradient(
+                colors: [Color(red: 1.0, green: 0.68, blue: 0.22), Color(red: 0.95, green: 0.38, blue: 0.50)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
         } else {
-            return AnyShapeStyle(Color.white.opacity(0.10))
+            return LinearGradient(
+                colors: [Color.white.opacity(0.12), Color.white.opacity(0.06)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
         }
     }
     
-    // MARK: - 第三层：三联立体时光进度方卡（今年 / 本月 / 今日，上下分层绝不折行）
+    // MARK: - 第三层：三联立体时光进度方卡（今年 / 本月 / 今日，横向铺满，紧凑分层）
     private var timeDimensionRow: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             dimensionMiniCard(
                 icon: "calendar",
                 title: "\(snapshot.currentYear)年",
                 remainingText: "剩 \(snapshot.yearRemainingDays) 天",
                 ratio: snapshot.yearProgressRatio,
-                accentColor: Color(red: 0.32, green: 0.76, blue: 1.0)
+                accentColor: Color(red: 0.35, green: 0.75, blue: 1.0)
             )
             
             dimensionMiniCard(
-                icon: "moon.stars.fill",
+                icon: "circle.grid.2x2",
                 title: "\(snapshot.currentMonth)月",
                 remainingText: "剩 \(snapshot.monthRemainingDays) 天",
                 ratio: snapshot.monthProgressRatio,
-                accentColor: Color(red: 0.25, green: 0.90, blue: 0.75)
+                accentColor: Color(red: 0.40, green: 0.90, blue: 0.68)
             )
             
             dimensionMiniCard(
@@ -376,7 +384,7 @@ struct LargeWidgetView: View {
                 title: "今日",
                 remainingText: "剩 \(snapshot.dayRemainingHours) 小时",
                 ratio: snapshot.dayProgressRatio,
-                accentColor: Color(red: 1.0, green: 0.65, blue: 0.22)
+                accentColor: Color(red: 1.0, green: 0.72, blue: 0.25)
             )
         }
     }
@@ -388,7 +396,7 @@ struct LargeWidgetView: View {
         ratio: Double,
         accentColor: Color
     ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3.5) {
             HStack(spacing: 3) {
                 Image(systemName: icon)
                     .font(.system(size: 8.5, weight: .bold))
@@ -415,7 +423,7 @@ struct LargeWidgetView: View {
                 height: 3
             )
         }
-        .padding(.horizontal, 9)
+        .padding(.horizontal, 8.5)
         .padding(.vertical, 7)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
@@ -423,14 +431,14 @@ struct LargeWidgetView: View {
                 .fill(Color.white.opacity(0.055))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(accentColor.opacity(0.22), lineWidth: 0.7)
+                        .stroke(accentColor.opacity(0.22), lineWidth: 0.65)
                 )
         )
     }
     
-    // MARK: - 第四层：底栏无截断生命箴言
+    // MARK: - 第四层：底栏无截断精炼生命箴言
     private var quoteFooterBar: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 4) {
             Image(systemName: "sparkles")
                 .font(.system(size: 9, weight: .bold))
                 .foregroundColor(Color(red: 1.0, green: 0.72, blue: 0.25))
@@ -441,10 +449,10 @@ struct LargeWidgetView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
             
-            Spacer(minLength: 4)
+            Spacer(minLength: 3)
             
             Text("— \(quote.author)")
-                .font(.system(size: 9, weight: .semibold))
+                .font(.system(size: 8.5, weight: .semibold))
                 .foregroundColor(Color(red: 1.0, green: 0.72, blue: 0.25).opacity(0.85))
                 .fixedSize(horizontal: true, vertical: false)
         }

@@ -21,9 +21,48 @@ final class AppSettings: ObservableObject {
     static let defaultAppGroup = "group.com.lifecountdown.app"
     private static let configFileName = "life_config.json"
     
+    /// 从当前 App 或 Extension 捆绑包中动态解析 embedded.mobileprovision 中的真实 App Group 授权
+    static func detectAppGroupsFromProvision() -> [String] {
+        var foundGroups: [String] = []
+        guard let provisionUrl = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
+              let provisionData = try? Data(contentsOf: provisionUrl) else {
+            return foundGroups
+        }
+        
+        guard let contentString = String(data: provisionData, encoding: .isoLatin1) else {
+            return foundGroups
+        }
+        
+        guard let xmlStart = contentString.range(of: "<?xml"),
+              let xmlEnd = contentString.range(of: "</plist>", range: xmlStart.lowerBound..<contentString.endIndex) else {
+            return foundGroups
+        }
+        
+        let xmlSubstring = contentString[xmlStart.lowerBound..<xmlEnd.upperBound]
+        guard let xmlData = xmlSubstring.data(using: .utf8),
+              let plist = try? PropertyListSerialization.propertyList(from: xmlData, options: [], format: nil) as? [String: Any],
+              let entitlements = plist["Entitlements"] as? [String: Any],
+              let groups = entitlements["com.apple.security.application-groups"] as? [String] else {
+            return foundGroups
+        }
+        
+        for g in groups where !g.isEmpty && !foundGroups.contains(g) {
+            foundGroups.append(g)
+        }
+        return foundGroups
+    }
+    
     /// 获取当前可能存在的所有 AppGroup 标识符候选（兼容个人免费证书侧载重命名 BundleID 的情况）
     static var appGroupCandidates: [String] {
         var candidates = [defaultAppGroup]
+        
+        // 1. 动态从签名 provision 中读取真实的 App Group
+        let provisionGroups = detectAppGroupsFromProvision()
+        for g in provisionGroups where !candidates.contains(g) {
+            candidates.append(g)
+        }
+        
+        // 2. 基于当前实际 BundleID 推断候选 Group
         if let bundleId = Bundle.main.bundleIdentifier {
             let cleanId = bundleId.replacingOccurrences(of: ".LifeWidget", with: "")
             let customGroup = "group.\(cleanId)"
